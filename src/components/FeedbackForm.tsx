@@ -6,11 +6,13 @@ import { TextArea, TextField } from './Fields';
 export function FeedbackForm() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
+    const formData = new FormData(event.currentTarget);
     await fetch('/__forms.html', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(formData).toString(),
+      body: new URLSearchParams(
+        formData as unknown as Record<string, string>,
+      ).toString(),
     });
     // Success & error handling should come here
   };
@@ -22,6 +24,7 @@ export function FeedbackForm() {
       data-netlify
       onSubmit={handleSubmit}
     >
+      <input type='hidden' name='form-name' value='feedback' />
       <h1 className='text-stone-100 text-3xl mb-8'>Feedback</h1>
       <TextField
         type='email'
