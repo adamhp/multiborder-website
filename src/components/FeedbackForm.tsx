@@ -8,6 +8,7 @@ export function FeedbackForm() {
   const [error, setError] = useState('');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     const formData = new FormData(event.currentTarget);
     await fetch('/__forms.html', {
       method: 'POST',
