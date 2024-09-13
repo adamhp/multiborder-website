@@ -62,10 +62,17 @@ export function Header() {
       <nav>
         <Container className='relative z-50 flex justify-between py-8'>
           <div className='relative z-10 flex items-center lg:gap-16'>
-            <Link href='/' aria-label='Home'>
+            <Link
+              href='/'
+              aria-label='Home'
+              className='flex flex-row items-center'
+            >
               <Logo className='h-10 w-auto' />
+              <p className='lg:hidden ml-4 text-base font-semibold'>
+                multiborder
+              </p>
             </Link>
-            <p className='ml-4 text-base font-semibold'>multiborder</p>
+
             <div className='hidden lg:flex lg:gap-10'>
               <NavLinks />
             </div>
@@ -95,7 +102,7 @@ export function Header() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className='fixed inset-0 z-0 bg-gray-300/60 backdrop-blur'
+                          className='fixed inset-0 z-0 bg-stone-800/60 backdrop-blur'
                         />
                         <PopoverPanel
                           static
@@ -109,17 +116,27 @@ export function Header() {
                           }}
                           className='absolute inset-x-0 top-0 z-0 origin-top rounded-b-2xl bg-stone-700 px-6 pb-6 pt-32 shadow-2xl shadow-gray-900/20'
                         >
+                          {/*     
+                          ['Download', appUrl],
+                          ['Features', '/features'],
+                          ['Reviews', '/reviews'],
+                          ['Support', '/support'],
+                          ['About', '/about'], 
+                          */}
                           <div className='space-y-4'>
                             <MobileNavLink href={appUrl}>
+                              Download
+                            </MobileNavLink>
+                            <MobileNavLink href='/features'>
                               Features
                             </MobileNavLink>
-                            <MobileNavLink href='/#features'>
-                              Features
-                            </MobileNavLink>
-                            <MobileNavLink href='/#reviews'>
+                            <MobileNavLink href='/reviews'>
                               Reviews
                             </MobileNavLink>
-                            <MobileNavLink href='/#faqs'>FAQs</MobileNavLink>
+                            <MobileNavLink href='/support'>
+                              Support
+                            </MobileNavLink>
+                            <MobileNavLink href='/about'>About</MobileNavLink>
                           </div>
                           <div className='mt-8 flex flex-col gap-4'>
                             <Button href={appUrl}>Download the app</Button>

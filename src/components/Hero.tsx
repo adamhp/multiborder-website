@@ -104,7 +104,7 @@ export function Hero() {
               </PhoneFrame>
             </div>
           </div>
-          <div className='mt-24 relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
+          <div className='mt-32 lg:mt-0 relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
             <h1 className='text-3xl text-center lg:text-4xl lg:text-left font-medium tracking-tight text-stone-100'>
               Easily add borders to multiple images
             </h1>
