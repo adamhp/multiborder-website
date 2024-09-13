@@ -7,7 +7,13 @@ import Image from 'next/image';
 export function AppDemo() {
   return (
     <AppScreen>
-      <Image alt='demo video gif' src={demo} width={393} height={952} />
+      <Image
+        unoptimized={true}
+        alt='demo video gif'
+        src={demo}
+        width={393}
+        height={952}
+      />
     </AppScreen>
   );
 }
