@@ -96,8 +96,16 @@ export function Hero() {
     <div className='overflow-hidden py-20 sm:py-32 lg:pb-32 xl:pb-36'>
       <Container>
         <div className='lg:grid lg:grid-cols-12 lg:gap-x-8 lg:gap-y-20'>
-          <div className='relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
-            <h1 className='text-4xl font-medium tracking-tight text-stone-100'>
+          <div className='lg:hidden relative -mt-24'>
+            <BackgroundIllustration className='absolute left-1/2 top-4 h-[700px] w-[700px] -translate-x-1/2 stroke-stone-400/70 [mask-image:linear-gradient(to_bottom,white_10%,transparent_75%)] sm:top-16 sm:-translate-x-1/2 lg:-top-16 lg: xl:-top-14 xl:ml-0' />
+            <div className='h-[700px] px-9 lg:[mask-image:linear-gradient(to_bottom,white_80%,transparent)] sm:mx-0 lg:absolute lg:-inset-x-10 lg:-top-32 lg:h-auto lg:px-0 lg:-bottom-32'>
+              <PhoneFrame className='mx-auto max-w-[393px]' priority>
+                <AppDemo />
+              </PhoneFrame>
+            </div>
+          </div>
+          <div className='mt-24 relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
+            <h1 className='text-3xl text-center lg:text-4xl lg:text-left font-medium tracking-tight text-stone-100'>
               Easily add borders to multiple images
             </h1>
             <p className='mt-6 text-lg text-stone-300'>
@@ -128,7 +136,7 @@ export function Hero() {
               </div>
             </div>
           </div>
-          <div className='relative mt-10 sm:mt-20 lg:col-span-5 lg:row-span-2 lg:mt-0 xl:col-span-6'>
+          <div className='hidden relative lg:block mt-10 lg:col-span-5 lg:row-span-2 lg:mt-0 xl:col-span-6'>
             <BackgroundIllustration className='absolute left-1/2 top-4 h-[700px] w-[700px] -translate-x-1/2 stroke-stone-400/70 [mask-image:linear-gradient(to_bottom,white_10%,transparent_75%)] sm:top-16 sm:-translate-x-1/2 lg:-top-16 lg: xl:-top-14 xl:ml-0' />
             <div className='h-[700px] px-9 lg:[mask-image:linear-gradient(to_bottom,white_80%,transparent)] sm:mx-0 lg:absolute lg:-inset-x-10 lg:-top-32 lg:h-auto lg:px-0 lg:-bottom-32'>
               <PhoneFrame className='mx-auto max-w-[393px]' priority>

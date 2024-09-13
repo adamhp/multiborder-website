@@ -61,10 +61,11 @@ export function Header() {
     <header>
       <nav>
         <Container className='relative z-50 flex justify-between py-8'>
-          <div className='relative z-10 flex items-center gap-16'>
+          <div className='relative z-10 flex items-center lg:gap-16'>
             <Link href='/' aria-label='Home'>
               <Logo className='h-10 w-auto' />
             </Link>
+            <p className='ml-4 text-base font-semibold'>multiborder</p>
             <div className='hidden lg:flex lg:gap-10'>
               <NavLinks />
             </div>
