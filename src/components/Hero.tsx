@@ -1,12 +1,13 @@
 import { useId } from 'react';
 
 import { AppDemo } from '@/components/AppDemo';
-import { AppStoreLink } from '@/components/AppStoreLink';
 import { Container } from '@/components/Container';
 import { PhoneFrame } from '@/components/PhoneFrame';
 
 // import { NewsletterSignup } from './NewsletterSignup';
 import { QrDownload } from './QrDownload';
+import { Button } from './Button';
+import Link from 'next/link';
 
 function BackgroundIllustration(props: React.ComponentPropsWithoutRef<'div'>) {
   const id = useId();
@@ -90,7 +91,12 @@ export function Hero() {
               </PhoneFrame>
             </div>
           </div>
-          <div className='mt-32 lg:mt-0 relative z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
+          <div className='relative -mt-16 z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
+            <div className='w-full flex flex-row items-center justify-center mb-12'>
+              <Link href='/features'>
+                <Button variant='outline'>See more features</Button>
+              </Link>
+            </div>
             <h1 className='text-3xl text-center lg:text-4xl lg:text-left font-medium tracking-tight text-stone-100'>
               Easily add borders to multiple images
             </h1>
@@ -100,9 +106,6 @@ export function Hero() {
               border size, and color, then download the results for seamless
               sharing.
             </p>
-            <div className='my-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 md:hidden'>
-              <AppStoreLink />
-            </div>
             <div className='hidden md:block mt-12 w-min mx-0 md:mx-auto lg:mx-0'>
               <QrDownload />
             </div>

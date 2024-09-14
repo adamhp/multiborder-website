@@ -10,8 +10,8 @@ import { CircleBackground } from '@/components/CircleBackground';
 import { Container } from '@/components/Container';
 import { PhoneFrame } from '@/components/PhoneFrame';
 import { motion } from 'framer-motion';
-import { AppStoreLink } from './AppStoreLink';
 import { QrDownload } from './QrDownload';
+import { Button } from './Button';
 
 const features = [
   {
@@ -265,7 +265,7 @@ function FeaturesMobile() {
     <>
       <div
         ref={slideContainerRef}
-        className='flex snap-x snap-mandatory -space-x-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 [scrollbar-width:none] sm:-space-x-6 [&::-webkit-scrollbar]:hidden'
+        className='mt-4 flex snap-x snap-mandatory -space-x-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 [scrollbar-width:none] sm:-space-x-6 [&::-webkit-scrollbar]:hidden'
       >
         {features.map((feature, featureIndex) => (
           <div
@@ -275,15 +275,15 @@ function FeaturesMobile() {
                 slideRefs.current[featureIndex] = ref;
               }
             }}
-            className='h-[75vh] w-full flex-none snap-center '
+            className='h-[80vh] w-full flex-none snap-center'
           >
-            <div className='-mt-12 md:mt-0 relative transform rounded-2xl bg-stone-800 p-2'>
-              <div className='h-[60vh] [mask-image:linear-gradient(to_bottom,white_60%,transparent)]'>
-                <PhoneFrame className='relative mx-auto w-full max-w-[300px] md:max-w-[393px]'>
+            <div className='-mt-6 md:mt-0 relative transform rounded-2xl bg-stone-800 p-2'>
+              <div className='h-[50vh] [mask-image:linear-gradient(to_bottom,white_70%,transparent)]'>
+                <PhoneFrame className='relative mx-auto w-full max-w-[200px] md:max-w-[393px]'>
                   <feature.screen />
                 </PhoneFrame>
               </div>
-              <div className='h-min absolute inset-x-0 -bottom-40 p-6 backdrop-blur sm:p-10'>
+              <div className='h-min absolute inset-x-0 -bottom-40 p-6 sm:p-10'>
                 <feature.icon className='h-6 w-6 mb-4' />
                 <h3 className='text-sm font-semibold text-stone-100 sm:text-lg'>
                   {feature.name}
@@ -295,7 +295,7 @@ function FeaturesMobile() {
             </div>
           </div>
         ))}
-        <div className='absolute bottom-0 inset-x-0 mt-6 flex justify-center gap-3'>
+        <div className='absolute -bottom-6 inset-x-0 mt-6 flex justify-center gap-3'>
           {features.map((_, featureIndex) => (
             <button
               type='button'
@@ -326,14 +326,14 @@ export function PrimaryFeatures() {
     <section
       id='features'
       aria-label='Features for investing all your money'
-      className='bg-stone-800 md:pt-8 pb-32 sm:pb-32'
+      className='bg-stone-800 md:pt-8 pb-12 sm:pb-32'
     >
       <Container>
         <div className='mx-auto max-w-2xl lg:mx-0 lg:max-w-3xl'>
           <h2 className='text-center text-xl md:text-left md:text-3xl font-medium tracking-tight text-stone-100'>
             Simple. Free. Borders.
           </h2>
-          <p className='mt-2 text-lg text-stone-300 hidden md:block'>
+          <p className='mt-2 text-stone-300 hidden md:block'>
             Fed up with bloated, complicated apps when you just need borders?
             Built by a photographer, multiborder lets you easily add borders of
             various size and color to multiple images at a time, configure
@@ -341,7 +341,7 @@ export function PrimaryFeatures() {
           </p>
         </div>
       </Container>
-      <div className='mt-8 md:hidden'>
+      <div className='md:hidden'>
         <FeaturesMobile />
       </div>
       <Container className='hidden md:mt-20 md:block'>
@@ -356,8 +356,10 @@ export function PrimaryFeatures() {
       <div className='hidden md:block mt-24 w-min mx-auto'>
         <QrDownload />
       </div>
-      <div className='block md:hidden mt-24 mx-auto w-min bg-stone-950 rounded-2xl'>
-        <AppStoreLink />
+      <div className='flex flex-row items-center justify-center'>
+        <Button href='/' variant='outline' className='mt-16'>
+          Back to main page
+        </Button>
       </div>
     </section>
   );
