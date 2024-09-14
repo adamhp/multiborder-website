@@ -11,6 +11,7 @@ import { Container } from '@/components/Container';
 import { PhoneFrame } from '@/components/PhoneFrame';
 import { motion } from 'framer-motion';
 import { AppStoreLink } from './AppStoreLink';
+import { QrDownload } from './QrDownload';
 
 const features = [
   {
@@ -352,7 +353,10 @@ export function PrimaryFeatures() {
         size and color to multiple images at a time, configure aspect ratio, and
         export to commonly used social media sizes.
       </p>
-      <div className='mt-12 w-min mx-auto'>
+      <div className='hidden md:block mt-24 w-min mx-auto'>
+        <QrDownload />
+      </div>
+      <div className='block md:hidden mt-24 mx-auto w-min bg-stone-950 rounded-2xl'>
         <AppStoreLink />
       </div>
     </section>
