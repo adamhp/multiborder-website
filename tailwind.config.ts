@@ -35,7 +35,7 @@ export default {
         '5xl': '2.5rem',
       },
       colors: ({ colors }) => ({
-        gray: colors.neutral,
+        stone: colors.neutral,
       }),
       fontFamily: {
         sans: 'var(--font-space-mono)',

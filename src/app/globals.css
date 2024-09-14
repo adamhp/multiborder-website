@@ -26,5 +26,9 @@ body {
 }
 
 .debug {
-  @apply border border-red-500
+  @apply border border-red-500;
+}
+
+a {
+  @apply text-amber-500 hover:text-amber-600;
 }

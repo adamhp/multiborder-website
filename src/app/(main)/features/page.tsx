@@ -1,10 +1,11 @@
-import { Container } from '@/components/Container';
+import { Container } from "@/components/Container";
+import { PrimaryFeatures } from "@/components/Features";
 
 export default function Features() {
   return (
     <Container>
-      <div className='overflow-hidden py-20 sm:py-32 lg:pb-32 xl:pb-36'>
-        Features
+      <div className="flex flex-col items-center mx-auto">
+        <PrimaryFeatures />
       </div>
     </Container>
   );
