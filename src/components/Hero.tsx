@@ -92,7 +92,7 @@ export function Hero() {
             </div>
           </div>
           <div className='relative -mt-16 z-10 mx-auto max-w-2xl lg:col-span-7 lg:max-w-none lg:pt-6 xl:col-span-6'>
-            <div className='w-full flex flex-row items-center justify-center mb-12'>
+            <div className='w-full flex flex-row items-center justify-center mb-12 md:hidden'>
               <Link href='/features'>
                 <Button variant='outline'>See more features</Button>
               </Link>
