@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --foreground: oklch(26.8% 0.007 34.298);
+  --foreground: rgb(38 38 38 / var(--tw-bg-opacity));
   --background: oklch(97% 0.001 106.424);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(26.8% 0.007 34.298);
+    --background: rgb(38 38 38 / var(--tw-bg-opacity));
     --foreground: oklch(97% 0.001 106.424);
   }
 }

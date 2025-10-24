@@ -1,8 +1,8 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import clsx from 'clsx';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { AppScreen } from '@/components/AppScreen';
@@ -10,8 +10,8 @@ import { CircleBackground } from '@/components/CircleBackground';
 import { Container } from '@/components/Container';
 import { PhoneFrame } from '@/components/PhoneFrame';
 import { motion } from 'framer-motion';
-import { QrDownload } from './QrDownload';
 import { Button } from './Button';
+import { QrDownload } from './QrDownload';
 
 const features = [
   {
@@ -325,7 +325,7 @@ export function PrimaryFeatures() {
   return (
     <section
       id='features'
-      aria-label='Features for investing all your money'
+      aria-label='Features'
       className='bg-stone-800 md:pt-8 pb-12 sm:pb-32'
     >
       <Container>
