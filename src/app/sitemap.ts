@@ -9,12 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-      url: 'https://apps.apple.com/app/apple-store/id6473557515?pt=126773719&ct=website&mt=8',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
       url: 'https://www.multiborder.io/reviews',
       lastModified: new Date(),
       changeFrequency: 'monthly',
