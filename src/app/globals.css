@@ -2,13 +2,13 @@
 @config "../../tailwind.config.ts";
 
 :root {
-  --foreground: rgb(38 38 38 / var(--tw-bg-opacity));
+  --foreground: rgb(38 38 38);
   --background: oklch(97% 0.001 106.424);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: rgb(38 38 38 / var(--tw-bg-opacity));
+    --background: rgb(38 38 38);
     --foreground: oklch(97% 0.001 106.424);
   }
 }
