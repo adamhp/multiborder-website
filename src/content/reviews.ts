@@ -49,4 +49,5 @@ export const reviewColumns: Review[][][] = [
   [[evan], [tom, jenna]],
 ];
 
-export const homeReviews: Review[] = [shawn, hugirl, jenna];
+// Every review, for the home page marquee.
+export const allReviews: Review[] = [shawn, doctorBoyong, hugirl, livi, evan, tom, jenna];
