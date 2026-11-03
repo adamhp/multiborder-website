@@ -6,7 +6,6 @@ import { PhoneFrame } from '@/components/PhoneFrame';
 
 // import { NewsletterSignup } from './NewsletterSignup';
 import { QrDownload } from './QrDownload';
-import { RatingLine } from './RatingLine';
 import { Button } from './Button';
 import Link from 'next/link';
 
@@ -107,9 +106,7 @@ export function Hero() {
               border size, and color, then download the results for seamless
               sharing.
             </p>
-            <RatingLine className='mt-6 md:hidden' />
             <div className='hidden md:block mt-12 w-min mx-0 md:mx-auto lg:mx-0'>
-              <RatingLine className='mb-4 whitespace-nowrap' />
               <QrDownload />
             </div>
           </div>

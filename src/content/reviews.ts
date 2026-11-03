@@ -1,10 +1,6 @@
 export type ReviewSource = 'App Store' | 'Ko-fi';
 export type Review = { body: string; author: string; source: ReviewSource };
 
-// Combined average across the US, UK and Australian stores. Apple's public
-// lookup API reports one country at a time, so this is updated by hand.
-export const appStoreRating = 4.6;
-
 const shawn: Review = {
   body: 'Absolutely perfect app, does exactly what you need it to do. Nothing more, nothing less.',
   author: '@shawn_buso',
