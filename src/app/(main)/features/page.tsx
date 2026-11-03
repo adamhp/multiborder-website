@@ -1,12 +1,9 @@
-import { Container } from "@/components/Container";
-import { PrimaryFeatures } from "@/components/Features";
+import { FeaturesSection } from "@/components/FeaturesSection";
 
 export default function Features() {
   return (
-    <Container>
-      <div className="flex flex-col items-center mx-auto">
-        <PrimaryFeatures />
-      </div>
-    </Container>
+    <div className="pt-16 sm:pt-24">
+      <FeaturesSection />
+    </div>
   );
 }
