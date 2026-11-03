@@ -33,7 +33,7 @@ export const spotlights: Spotlight[] = [
   },
   {
     title: 'Camera settings caption',
-    body: 'Show the date taken, title, filename, your handle, camera, focal length, aperture, shutter speed and ISO above and below the photo, all read from the photo itself.',
+    body: 'Show the date taken, title, filename, your handle, camera, focal length, aperture, shutter speed and ISO above and below the photo, with the camera details read from the photo itself.',
     points: ['Drag details into place', 'Choose the font', 'Optional icons'],
     video: '/videos/camera-caption.mp4',
     poster: '/videos/camera-caption.jpg',
