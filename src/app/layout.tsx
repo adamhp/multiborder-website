@@ -25,7 +25,7 @@ export default function RootLayout({
 
   return (
     <html
-      className={`${spaceMono.variable} antialiased bg-stone-800`}
+      className={`${spaceMono.variable} dark antialiased bg-stone-800`}
       lang='en'
     >
       <body>
