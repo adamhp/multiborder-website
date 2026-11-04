@@ -51,7 +51,7 @@ function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings
     const element = box.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) =>
-      setRoom({ width: entry.contentRect.width, height: Math.max(window.innerHeight * 0.7, 320) }),
+      setRoom({ width: entry.contentRect.width, height: Math.max(window.innerHeight * 0.6, 320) }),
     );
     observer.observe(element);
     return () => observer.disconnect();
@@ -246,10 +246,10 @@ export function Editor() {
           <span className='text-sm text-stone-400'>or drop them here. JPEG, PNG and WebP work everywhere; HEIC in Safari.</span>
         </button>
       ) : (
-        <div className='grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]'>
-          <div className='min-w-0 space-y-4'>
+        <div className='mx-auto max-w-2xl space-y-4'>
+          <div className='space-y-4'>
             {selected && settings && <Preview photo={selected} settings={settings} fontFamily={fontFamily} />}
-            <ul className='flex gap-3 overflow-x-auto pb-2' aria-label='Photos'>
+            <ul className='flex gap-3 overflow-x-auto p-1 pb-2' aria-label='Photos'>
               {photos.map((photo) => (
                 <li key={photo.id} className='relative shrink-0'>
                   <button
@@ -284,13 +284,15 @@ export function Editor() {
             </ul>
           </div>
 
-          <aside className='space-y-6'>
-            <div className='flex flex-col gap-2'>
+          {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
+
+          <div className='space-y-2 border-t border-stone-700 pt-4'>
+            <div className='flex flex-wrap gap-2'>
               <button
                 type='button'
                 onClick={downloadSelected}
                 disabled={!!busy || !selected}
-                className='rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-stone-900 hover:bg-amber-400 disabled:opacity-50'
+                className='flex-1 rounded-xl bg-amber-500 px-3 py-2.5 text-sm font-semibold text-stone-900 hover:bg-amber-400 disabled:opacity-50'
               >
                 Download
               </button>
@@ -299,17 +301,16 @@ export function Editor() {
                   type='button'
                   onClick={downloadAll}
                   disabled={!!busy}
-                  className='rounded-lg border border-stone-500 px-3 py-2 text-sm text-stone-200 hover:border-stone-300 disabled:opacity-50'
+                  className='flex-1 rounded-xl bg-stone-600 px-3 py-2.5 text-sm text-stone-100 hover:bg-stone-500 disabled:opacity-50'
                 >
-                  Download all ({photos.length}) as .zip
+                  Download all ({photos.length})
                 </button>
               )}
-              <p className='min-h-5 text-sm text-stone-400' role='status' aria-live='polite'>
-                {busy ?? (loading > 0 ? 'Opening photos…' : notice ?? '')}
-              </p>
             </div>
-            {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
-          </aside>
+            <p className='min-h-5 text-sm text-stone-400' role='status' aria-live='polite'>
+              {busy ?? (loading > 0 ? 'Opening photos…' : notice ?? '')}
+            </p>
+          </div>
         </div>
       )}
 
