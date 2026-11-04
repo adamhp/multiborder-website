@@ -546,7 +546,7 @@ export function Controls({ settings: s, onChange, canBlur }: { settings: BorderS
   );
 }
 
-const WIDTH_TITLES: Record<(typeof EXPORT_WIDTHS)[number], string> = { 0: 'Full', 2048: '2048', 1080: '1080' };
+const WIDTH_TITLES: Record<(typeof EXPORT_WIDTHS)[number], string> = { 1080: '1080', 2160: '2160', 0: 'Full' };
 const FORMAT_TITLES: Record<(typeof EXPORT_FORMATS)[number], string> = { original: 'Orig.', jpeg: 'JPEG', png: 'PNG' };
 
 function Segmented<T extends string | number>({ label, options, value, titles, onChange }: {

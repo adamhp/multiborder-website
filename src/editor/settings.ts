@@ -22,7 +22,7 @@ export type CaptionFont = (typeof CAPTION_FONTS)[number];
 export const EXPORT_FORMATS = ['original', 'jpeg', 'png'] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 /** Output widths offered; 0 is the photo's full resolution. */
-export const EXPORT_WIDTHS = [1080, 2048, 0] as const;
+export const EXPORT_WIDTHS = [1080, 2160, 0] as const;
 export type Insets = { top: number; left: number; bottom: number; right: number };
 
 export type BorderSettings = {
