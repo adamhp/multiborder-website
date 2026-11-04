@@ -166,3 +166,14 @@ export function saveSettings(s: BorderSettings, storage = browserStorage()): voi
     // Private windows and full storage: settings just don't persist.
   }
 }
+
+export type CaptionRow = 'above' | 'below';
+
+/** `s` with `field` moved to `index` in `row` (clamped to the row's ends), out of wherever it was. */
+export function moveCaptionField(s: BorderSettings, field: CaptionField, row: CaptionRow, index: number): BorderSettings {
+  const captionAbove = s.captionAbove.filter((f) => f !== field);
+  const captionBelow = s.captionBelow.filter((f) => f !== field);
+  const target = row === 'above' ? captionAbove : captionBelow;
+  target.splice(Math.min(Math.max(index, 0), target.length), 0, field);
+  return { ...s, captionAbove, captionBelow };
+}

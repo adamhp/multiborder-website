@@ -1,7 +1,9 @@
 'use client';
 
 import clsx from 'clsx';
+import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { AppStoreLink } from '@/components/AppStoreLink';
 import { Controls } from '@/components/editor/Controls';
 import { DecodeError, drawComposite, exportJpeg, exportName, loadFont, loadPhoto, supportsCanvasFilter, type LoadedPhoto } from '@/editor/compose';
@@ -41,7 +43,8 @@ function Thumbnail({ photo }: { photo: LoadedPhoto }) {
 }
 
 /** The selected photo on its border, redrawn whenever the settings or the space available change. */
-function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings: BorderSettings; fontFamily: string }) {
+/** Only the photo in view and its neighbors are drawn, so a long carousel doesn't redraw every photo on each change. */
+function Preview({ photo, settings, fontFamily, active }: { photo: LoadedPhoto; settings: BorderSettings; fontFamily: string; active: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLCanvasElement>(null);
   const [room, setRoom] = useState({ width: 0, height: 0 });
@@ -60,7 +63,7 @@ function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx || room.width === 0) return;
+    if (!canvas || !ctx || room.width === 0 || !active) return;
     // The full-size layout gives the canvas's shape; the preview is the same layout at the width that fits.
     const full = layout(photo.size, { ...settings, exportWidth: 0 });
     const ratio = full.canvasSize.width / full.canvasSize.height;
@@ -78,10 +81,10 @@ function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings
     } catch {
       setFailed(true);
     }
-  }, [photo, settings, fontFamily, room]);
+  }, [photo, settings, fontFamily, room, active]);
 
   return (
-    <div ref={box} className='flex w-full flex-col items-center'>
+    <div ref={box} className='flex w-full flex-col items-center justify-center' style={{ minHeight: room.height || undefined }}>
       {failed && (
         <p role='alert' className='mb-2 text-sm text-red-300'>
           This browser couldn&apos;t draw the preview. Try fewer photos or reload the page.
@@ -149,6 +152,25 @@ export function Editor() {
   };
 
   const selected = photos.find((p) => p.id === selectedId) ?? photos[0];
+  const selectedIndex = selected ? photos.indexOf(selected) : 0;
+
+  // The carousel and the selection follow each other: swiping selects, and selecting (a thumbnail,
+  // or a removal) scrolls.
+  const [carousel, setCarousel] = useState<CarouselApi>();
+  useEffect(() => {
+    if (!carousel) return;
+    const onSelect = () => {
+      const photo = photos[carousel.selectedScrollSnap()];
+      if (photo) setSelectedId(photo.id);
+    };
+    carousel.on('select', onSelect);
+    return () => {
+      carousel.off('select', onSelect);
+    };
+  }, [carousel, photos]);
+  useEffect(() => {
+    if (carousel && carousel.selectedScrollSnap() !== selectedIndex) carousel.scrollTo(selectedIndex);
+  }, [carousel, selectedIndex, photos.length]);
 
   const downloadSelected = async () => {
     if (!selected || !settings) return;
@@ -246,18 +268,34 @@ export function Editor() {
           <span className='text-sm text-stone-400'>or drop them here. JPEG, PNG and WebP work everywhere; HEIC in Safari.</span>
         </button>
       ) : (
-        <div className='mx-auto max-w-2xl space-y-4'>
-          <div className='space-y-4'>
-            {selected && settings && <Preview photo={selected} settings={settings} fontFamily={fontFamily} />}
-            <ul className='flex gap-3 overflow-x-auto p-1 pb-2' aria-label='Photos'>
+        <div className='grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_23rem]'>
+          <div className='min-w-0 space-y-4'>
+            {settings && (
+              <Carousel setApi={setCarousel} aria-label='Photos' className='rounded-2xl bg-stone-900/40 p-3 sm:p-6'>
+                <CarouselContent>
+                  {photos.map((photo, index) => (
+                    <CarouselItem key={photo.id} aria-label={`${index + 1} of ${photos.length}`}>
+                      <Preview photo={photo} settings={settings} fontFamily={fontFamily} active={Math.abs(index - selectedIndex) <= 1} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {photos.length > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
+                )}
+              </Carousel>
+            )}
+            <ul className='flex justify-center gap-2 overflow-x-auto p-1 pb-2' aria-label='Photo list'>
               {photos.map((photo) => (
-                <li key={photo.id} className='relative shrink-0'>
+                <li key={photo.id} className='group relative shrink-0'>
                   <button
                     type='button'
                     onClick={() => setSelectedId(photo.id)}
                     aria-label={`Show ${photo.name}`}
                     aria-current={photo.id === selected?.id}
-                    className={clsx('block rounded-lg p-0.5', photo.id === selected?.id ? 'bg-amber-500' : 'bg-transparent')}
+                    className={clsx('block rounded-lg p-0.5 transition-colors', photo.id === selected?.id ? 'bg-amber-500' : 'bg-transparent hover:bg-stone-600')}
                   >
                     <Thumbnail photo={photo} />
                   </button>
@@ -265,9 +303,9 @@ export function Editor() {
                     type='button'
                     onClick={() => remove(photo.id)}
                     aria-label={`Remove ${photo.name}`}
-                    className='absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full bg-stone-900 text-xs text-stone-200 ring-1 ring-stone-600 hover:bg-stone-700'
+                    className='absolute -right-1.5 -top-1.5 flex size-6 items-center justify-center rounded-full bg-stone-900 text-stone-200 ring-1 ring-stone-600 hover:bg-stone-700'
                   >
-                    ✕
+                    <X className='size-3.5' />
                   </button>
                 </li>
               ))}
@@ -275,42 +313,59 @@ export function Editor() {
                 <button
                   type='button'
                   onClick={() => input.current?.click()}
-                  className='flex size-[4.25rem] items-center justify-center rounded-lg border-2 border-dashed border-stone-600 text-2xl text-stone-400 hover:border-stone-400'
+                  className='flex size-[4.25rem] items-center justify-center rounded-lg border-2 border-dashed border-stone-600 text-stone-400 hover:border-stone-400 hover:text-stone-200'
                   aria-label='Add photos'
                 >
-                  +
+                  <Plus className='size-6' />
                 </button>
               </li>
             </ul>
           </div>
 
-          {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
+          {/* The controls keep the phone's width, beside the photos on large screens and under them on small ones. */}
+          <aside aria-label='Border settings' className='mx-auto w-full max-w-sm space-y-4 lg:sticky lg:top-6 lg:rounded-2xl lg:bg-stone-900/40 lg:p-4'>
+            {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
 
-          <div className='space-y-2 border-t border-stone-700 pt-4'>
-            <div className='flex flex-wrap gap-2'>
-              <button
-                type='button'
-                onClick={downloadSelected}
-                disabled={!!busy || !selected}
-                className='flex-1 rounded-xl bg-amber-500 px-3 py-2.5 text-sm font-semibold text-stone-900 hover:bg-amber-400 disabled:opacity-50'
-              >
-                Download
-              </button>
-              {photos.length > 1 && (
+            <div className='space-y-2 border-t border-white/10 pt-4'>
+              {settings && (
+                <div className='flex items-center justify-between text-xs text-stone-400'>
+                  <span id='export-size'>Export size</span>
+                  <div className='flex gap-1' role='group' aria-labelledby='export-size'>
+                    {([[0, 'Full size'], [1080, '1080 px']] as const).map(([width, title]) => (
+                      <button key={width} type='button' aria-pressed={settings.exportWidth === width} onClick={() => change({ exportWidth: width })}
+                        className={clsx('h-7 rounded-full border px-3', settings.exportWidth === width
+                          ? 'border-white/15 bg-stone-800 text-amber-500' : 'border-transparent text-stone-300 hover:text-stone-100')}>
+                        {title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className='flex gap-2'>
                 <button
                   type='button'
-                  onClick={downloadAll}
-                  disabled={!!busy}
-                  className='flex-1 rounded-xl bg-stone-600 px-3 py-2.5 text-sm text-stone-100 hover:bg-stone-500 disabled:opacity-50'
+                  onClick={downloadSelected}
+                  disabled={!!busy || !selected}
+                  className='flex-1 rounded-xl bg-amber-500 px-3 py-2.5 text-sm font-semibold text-stone-900 hover:bg-amber-400 disabled:opacity-50'
                 >
-                  Download all ({photos.length})
+                  Download
                 </button>
-              )}
+                {photos.length > 1 && (
+                  <button
+                    type='button'
+                    onClick={downloadAll}
+                    disabled={!!busy}
+                    className='flex-1 rounded-xl bg-stone-600 px-3 py-2.5 text-sm text-stone-100 hover:bg-stone-500 disabled:opacity-50'
+                  >
+                    Download all ({photos.length})
+                  </button>
+                )}
+              </div>
+              <p className='min-h-5 text-sm text-stone-400' role='status' aria-live='polite'>
+                {busy ?? (loading > 0 ? 'Opening photos…' : notice ?? '')}
+              </p>
             </div>
-            <p className='min-h-5 text-sm text-stone-400' role='status' aria-live='polite'>
-              {busy ?? (loading > 0 ? 'Opening photos…' : notice ?? '')}
-            </p>
-          </div>
+          </aside>
         </div>
       )}
 

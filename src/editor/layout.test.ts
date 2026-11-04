@@ -7,6 +7,7 @@ import {
   cornerRadius,
   DEFAULT_SETTINGS,
   loadSettings,
+  moveCaptionField,
   type BorderSettings,
 } from './settings';
 
@@ -103,5 +104,20 @@ describe('settings', () => {
     expect(loadSettings(storage)).toEqual(DEFAULT_SETTINGS);
     store.set('multiborder.settings', JSON.stringify({ aspectRatio: '7:8', paddingFraction: 0.05, fill: 'plaid' }));
     expect(loadSettings(storage)).toEqual({ ...DEFAULT_SETTINGS, paddingFraction: 0.05 });
+  });
+});
+
+describe('moveCaptionField', () => {
+  it('movesWithinARowAndBetweenRows', () => {
+    const s = settings({ captionAbove: ['date', 'handle'], captionBelow: ['camera', 'focalLength', 'aperture', 'shutter', 'iso'] });
+    expect(moveCaptionField(s, 'handle', 'above', 0).captionAbove).toEqual(['handle', 'date']);
+    const across = moveCaptionField(s, 'iso', 'above', 1);
+    expect(across.captionAbove).toEqual(['date', 'iso', 'handle']);
+    expect(across.captionBelow).toEqual(['camera', 'focalLength', 'aperture', 'shutter']);
+    // Out-of-range indexes clamp to the row's ends.
+    expect(moveCaptionField(s, 'date', 'below', 99).captionBelow.at(-1)).toBe('date');
+    expect(moveCaptionField(s, 'date', 'below', -5).captionBelow[0]).toBe('date');
+    // The original is untouched.
+    expect(s.captionAbove).toEqual(['date', 'handle']);
   });
 });
