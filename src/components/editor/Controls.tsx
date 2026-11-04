@@ -493,9 +493,9 @@ export function Controls({ settings: s, onChange, canBlur }: { settings: BorderS
 
       <Reveal show={s.roundsCorners}>
         <Row lead={<SquareRoundCorner className={ICON} />}>
-          {/* 1–64 px on the border width's scale, as the app shows it. */}
+          {/* 1–64 on the border width's scale, as the app shows it. */}
           <ScaledSlider label='Corner radius' value={s.cornerFraction} range={CORNER_RANGE} step={cornerMax / 64}
-            scale={64 / cornerMax} suffix=' px' onChange={(cornerFraction) => onChange({ cornerFraction })} />
+            scale={64 / cornerMax} onChange={(cornerFraction) => onChange({ cornerFraction })} />
         </Row>
       </Reveal>
       <Reveal show={s.hasShadow}>

@@ -19,12 +19,12 @@ export function Slider({
       <SliderPrimitive.Thumb
         aria-label={label}
         aria-valuetext={valueText}
-        className='relative block size-7 cursor-grab rounded-full bg-white shadow-md shadow-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 active:cursor-grabbing'
+        className='relative block h-7 w-10 cursor-grab rounded-full bg-white shadow-md shadow-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 active:cursor-grabbing'
       >
         {valueText !== undefined && (
           <span
             aria-hidden='true'
-            className='pointer-events-none absolute inset-x-[-0.75rem] top-1/2 -translate-y-1/2 text-center text-[11px] font-medium tabular-nums text-stone-900 transition-all duration-150 ease-out group-active:-translate-y-[2.6rem] group-active:text-sm group-active:text-white'
+            className='pointer-events-none absolute inset-x-[-0.5rem] top-1/2 -translate-y-1/2 text-center text-[11px] font-medium tabular-nums text-stone-900 transition-all duration-150 ease-out group-active:-translate-y-[2.6rem] group-active:text-sm group-active:text-white'
           >
             {valueText}
           </span>
