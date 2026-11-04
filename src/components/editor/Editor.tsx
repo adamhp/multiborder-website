@@ -45,6 +45,7 @@ function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings
   const box = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLCanvasElement>(null);
   const [room, setRoom] = useState({ width: 0, height: 0 });
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const element = box.current;
@@ -70,11 +71,22 @@ function Preview({ photo, settings, fontFamily }: { photo: LoadedPhoto; settings
     canvas.height = result.canvasSize.height;
     canvas.style.width = `${result.canvasSize.width / dpr}px`;
     canvas.style.height = `${result.canvasSize.height / dpr}px`;
-    drawComposite(ctx, photo.preview, result, settings, photo.details, fontFamily);
+    // A drawing failure (e.g. the browser is out of canvas memory) shouldn't take the whole page down.
+    try {
+      drawComposite(ctx, photo.preview, result, settings, photo.details, fontFamily);
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
   }, [photo, settings, fontFamily, room]);
 
   return (
-    <div ref={box} className='flex w-full justify-center'>
+    <div ref={box} className='flex w-full flex-col items-center'>
+      {failed && (
+        <p role='alert' className='mb-2 text-sm text-red-300'>
+          This browser couldn&apos;t draw the preview. Try fewer photos or reload the page.
+        </p>
+      )}
       <canvas ref={ref} role='img' aria-label={`Preview of ${photo.name} with its border`} className='shadow-xl' />
     </div>
   );
@@ -87,6 +99,7 @@ export function Editor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [fontFamily, setFontFamily] = useState('monospace');
   const [canBlur, setCanBlur] = useState(true);
@@ -127,6 +140,7 @@ export function Editor() {
   };
 
   const remove = (id: string) => {
+    photos.find((p) => p.id === id)?.preview.close();
     setPhotos((list) => {
       const next = list.filter((p) => p.id !== id);
       setSelectedId((selected) => (selected === id ? next[0]?.id ?? null : selected));
@@ -139,8 +153,11 @@ export function Editor() {
   const downloadSelected = async () => {
     if (!selected || !settings) return;
     setBusy('Exporting…');
+    setNotice(null);
     try {
       download(await exportJpeg(selected, settings, fontFamily), exportName(selected.name));
+    } catch {
+      setNotice(`Couldn't export ${selected.name}. Try the 1080 px size, or fewer photos at once.`);
     } finally {
       setBusy(null);
     }
@@ -150,15 +167,28 @@ export function Editor() {
     if (!settings || photos.length === 0) return;
     const { zipSync } = await import('fflate');
     const files: Record<string, [Uint8Array, { level: 0 }]> = {};
+    const skipped: string[] = [];
+    setNotice(null);
     try {
       for (const [index, photo] of photos.entries()) {
         setBusy(`Exporting ${index + 1} of ${photos.length}…`);
         let name = exportName(photo.name);
         for (let n = 2; files[name]; n++) name = exportName(photo.name).replace(/\.jpg$/, `-${n}.jpg`);
-        // JPEGs are already compressed, so they're stored as they are.
-        files[name] = [new Uint8Array(await (await exportJpeg(photo, settings, fontFamily)).arrayBuffer()), { level: 0 }];
+        try {
+          // JPEGs are already compressed, so they're stored as they are.
+          files[name] = [new Uint8Array(await (await exportJpeg(photo, settings, fontFamily)).arrayBuffer()), { level: 0 }];
+        } catch {
+          skipped.push(photo.name);
+        }
       }
-      download(new Blob([zipSync(files) as Uint8Array<ArrayBuffer>], { type: 'application/zip' }), 'multiborder.zip');
+      if (Object.keys(files).length > 0) {
+        download(new Blob([zipSync(files) as Uint8Array<ArrayBuffer>], { type: 'application/zip' }), 'multiborder.zip');
+      }
+      if (skipped.length > 0) {
+        setNotice(`Couldn't export ${skipped.join(', ')}. Try the 1080 px size, or fewer photos at once.`);
+      }
+    } catch {
+      setNotice("Couldn't make the .zip. Try downloading the photos one at a time.");
     } finally {
       setBusy(null);
     }
@@ -275,7 +305,7 @@ export function Editor() {
                 </button>
               )}
               <p className='min-h-5 text-sm text-stone-400' role='status' aria-live='polite'>
-                {busy ?? (loading > 0 ? 'Opening photos…' : '')}
+                {busy ?? (loading > 0 ? 'Opening photos…' : notice ?? '')}
               </p>
             </div>
             {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}

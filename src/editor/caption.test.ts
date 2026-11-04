@@ -23,6 +23,14 @@ describe('photo details', () => {
     expect(detailsFromTags({ DateTimeOriginal: 'garbage' }).date).toBeUndefined();
   });
 
+  it('impossibleDatesAreOmitted', () => {
+    // Cameras whose clock was never set write zeros.
+    expect(detailsFromTags({ DateTimeOriginal: '0000:00:00 00:00:00' }).date).toBeUndefined();
+    expect(detailsFromTags({ DateTimeOriginal: '2026:02:30 12:00:00' }).date).toBeUndefined();
+    expect(detailsFromTags({ DateTimeOriginal: '2026:13:01 12:00:00' }).date).toBeUndefined();
+    expect(detailsFromTags({ DateTimeOriginal: '0050:03:04 12:00:00' }).date).toBe('Mar 4, 50');
+  });
+
   it('missingTagsAreOmitted', () => {
     expect(detailsFromTags({})).toEqual({});
     const rows = captionRows({}, settings({ handle: 'adam' }));

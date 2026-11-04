@@ -75,8 +75,14 @@ function decimal(value: number): string {
 function formattedDate(stamp: string): string | undefined {
   const match = /^(\d{4}):(\d{2}):(\d{2})/.exec(stamp);
   if (!match) return undefined;
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  if (Number.isNaN(date.getTime())) return undefined;
+  const [year, month, day] = match.slice(1).map(Number);
+  // setUTCFullYear avoids Date.UTC's 0–99 → 19xx mapping; the round trip rejects dates that would roll over
+  // (e.g. Feb 30) and the zeros cameras write when their clock was never set.
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  if (year < 1 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    return undefined;
+  }
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
 }
 

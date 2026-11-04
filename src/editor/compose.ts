@@ -2,6 +2,7 @@
 // Browser only: everything here needs the DOM.
 import { captionPlacement, captionRows, captionTextColor, detailsFromTags, readTags, type PhotoDetails } from './caption';
 import { layout, type Layout } from './layout';
+import { serialQueue } from './queue';
 import { blurRadius, cornerRadius, shadowBlur, type BorderSettings, type Size } from './settings';
 
 export type LoadedPhoto = {
@@ -11,16 +12,28 @@ export type LoadedPhoto = {
   /** Upright pixel size of the full-resolution photo. */
   size: Size;
   /** A copy whose long side is at most `PREVIEW_PIXEL_SIZE`, for redrawing the preview quickly. */
-  preview: HTMLCanvasElement;
+  preview: ImageBitmap;
   details: PhotoDetails;
 };
 
 export class DecodeError extends Error {}
 
-const PREVIEW_PIXEL_SIZE = 2048;
+const PREVIEW_PIXEL_SIZE = 1600;
 /** Long side of the photo copy the blur fill is blurred at before being scaled up. */
 const BACKDROP_PIXEL_SIZE = 512;
 const JPEG_QUALITY = 0.92;
+
+/**
+ * Full-size decodes and export canvases, one at a time across every caller (adding photos while
+ * exporting, two drops in a row), since iOS Safari has little memory for either.
+ */
+const decodeQueue = serialQueue();
+
+/** Gives a canvas's memory back now rather than whenever it's collected; iOS Safari counts it against a small budget. */
+function release(element: HTMLCanvasElement) {
+  element.width = 0;
+  element.height = 0;
+}
 
 const isHeic = (file: File) => /hei[cf]/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
 
@@ -65,20 +78,26 @@ function scaledCopy(image: CanvasImageSource & Size, longSide: number): HTMLCanv
   return copy;
 }
 
-export async function loadPhoto(file: File): Promise<LoadedPhoto> {
-  const [bitmap, tags] = await Promise.all([decode(file), readTags(file)]);
-  try {
-    return {
-      id: crypto.randomUUID(),
-      file,
-      name: file.name,
-      size: { width: bitmap.width, height: bitmap.height },
-      preview: scaledCopy(bitmap, PREVIEW_PIXEL_SIZE),
-      details: detailsFromTags(tags),
-    };
-  } finally {
-    bitmap.close();
-  }
+export function loadPhoto(file: File): Promise<LoadedPhoto> {
+  return decodeQueue(async () => {
+    const [bitmap, tags] = await Promise.all([decode(file), readTags(file)]);
+    let copy: HTMLCanvasElement | undefined;
+    try {
+      copy = scaledCopy(bitmap, PREVIEW_PIXEL_SIZE);
+      return {
+        id: crypto.randomUUID(),
+        file,
+        name: file.name,
+        size: { width: bitmap.width, height: bitmap.height },
+        // A bitmap rather than the canvas, so the copy's canvas memory can be given back.
+        preview: await createImageBitmap(copy),
+        details: detailsFromTags(tags),
+      };
+    } finally {
+      bitmap.close();
+      if (copy) release(copy);
+    }
+  });
 }
 
 let filterSupport: boolean | undefined;
@@ -119,14 +138,28 @@ function blurredBackdrop(image: CanvasImageSource & Size, size: Size, sigma: num
   const [blurred, b] = canvas(w, h);
   b.filter = `blur(${blur}px)`;
   b.drawImage(padded, -pad, -pad);
+  release(small);
+  release(padded);
   return blurred;
 }
 
 function photoPath(ctx: CanvasRenderingContext2D, layout: Layout, radius: number) {
   const r = layout.imageRect;
   ctx.beginPath();
-  if (radius > 0) ctx.roundRect(r.x, r.y, r.width, r.height, radius);
-  else ctx.rect(r.x, r.y, r.width, r.height);
+  if (radius <= 0) {
+    ctx.rect(r.x, r.y, r.width, r.height);
+  } else if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(r.x, r.y, r.width, r.height, radius);
+  } else {
+    // Safari before 16 and Firefox before 112 have no roundRect.
+    const right = r.x + r.width, bottom = r.y + r.height;
+    ctx.moveTo(r.x + radius, r.y);
+    ctx.arcTo(right, r.y, right, bottom, radius);
+    ctx.arcTo(right, bottom, r.x, bottom, radius);
+    ctx.arcTo(r.x, bottom, r.x, r.y, radius);
+    ctx.arcTo(r.x, r.y, right, r.y, radius);
+    ctx.closePath();
+  }
 }
 
 /**
@@ -149,6 +182,7 @@ export function drawComposite(
     const scale = Math.max(size.width / backdrop.width, size.height / backdrop.height);
     const w = backdrop.width * scale, h = backdrop.height * scale;
     ctx.drawImage(backdrop, (size.width - w) / 2, (size.height - h) / 2, w, h);
+    release(backdrop);
   } else {
     ctx.fillStyle = s.borderColor;
     ctx.fillRect(0, 0, size.width, size.height);
@@ -203,7 +237,11 @@ export async function loadFont(fontFamily: string): Promise<void> {
 }
 
 /** The photo at export size on its border, as a JPEG. Renders full size, so callers export one photo at a time. */
-export async function exportJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: string): Promise<Blob> {
+export function exportJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: string): Promise<Blob> {
+  return decodeQueue(() => renderJpeg(photo, s, fontFamily));
+}
+
+async function renderJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: string): Promise<Blob> {
   const bitmap = await decode(photo.file);
   const [element, ctx] = (() => {
     try {
@@ -220,10 +258,8 @@ export async function exportJpeg(photo: LoadedPhoto, s: BorderSettings, fontFami
       element.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Export failed'))), 'image/jpeg', JPEG_QUALITY),
     );
   } finally {
-    // Frees the canvas's memory now rather than whenever it's collected (iOS Safari counts it against a small budget).
     ctx.reset?.();
-    element.width = 0;
-    element.height = 0;
+    release(element);
   }
 }
 
