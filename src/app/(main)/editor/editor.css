@@ -1,0 +1,61 @@
+/* The caption fonts, the same files the app bundles (SIL Open Font License). Each downloads only once used. */
+@font-face {
+  font-family: 'MB DM Mono';
+  src: url('/fonts/caption/DMMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB DM Sans';
+  src: url('/fonts/caption/DMSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB IBM Plex Mono';
+  src: url('/fonts/caption/IBMPlexMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB Inter';
+  src: url('/fonts/caption/Inter-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB JetBrains Mono';
+  src: url('/fonts/caption/JetBrainsMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB Space Grotesk';
+  src: url('/fonts/caption/SpaceGrotesk-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MB Space Mono';
+  src: url('/fonts/caption/SpaceMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* Popovers grow from where they're anchored, like the app's. */
+@keyframes mb-popover-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes mb-popover-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+}
+.mb-popover {
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+.mb-popover[data-state='open'] { animation: mb-popover-in 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.mb-popover[data-state='closed'] { animation: mb-popover-out 100ms ease-in; }
+@media (prefers-reduced-motion: reduce) {
+  .mb-popover[data-state] { animation: none; }
+}
