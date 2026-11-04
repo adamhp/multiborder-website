@@ -1,5 +1,6 @@
 // The caption printed above and below the photo, ported from `PhotoCaption` in the iOS app.
-import type { BorderSettings, CaptionAlignment, CaptionField, Size } from './settings';
+import type { Layout } from './layout';
+import type { BorderFill, BorderSettings, CaptionAlignment, CaptionField, Rect, Size } from './settings';
 
 /** The EXIF tags the caption reads, as `exifr` returns them with `reviveValues: false`. */
 export type ExifTags = {
@@ -136,4 +137,82 @@ export function captionRows(details: PhotoDetails, s: BorderSettings): CaptionRo
     aboveAlignment: s.captionAlignmentAbove,
     belowAlignment: s.captionAlignmentBelow,
   };
+}
+
+// MARK: - Layout
+
+/** Width of `text` at font size 1, in the same units as the canvas. */
+export type Measure = (text: string) => number;
+export type CaptionPlacement = { fontSize: number; entries: { item: CaptionItem; frame: Rect }[] };
+
+/** Font size as a share of the canvas's shorter side, before it's limited by the room available. */
+const SIZE_SHARE = 0.022;
+/** A border must be this many font sizes deep: the space beside the photo, the row, and some beyond. */
+const GAP_IN_FONT_SIZES = 2.6;
+/** Space between the photo and the row, in font sizes. */
+const PHOTO_SPACING = 0.8;
+/** Least space between two spread items, in font sizes. */
+const MINIMUM_SPACING = 1.0;
+/** Space between items that aren't spread, in font sizes. */
+const GROUPED_SPACING = 1.5;
+const LINE_HEIGHT = 1.2;
+
+/**
+ * Lays each row out just beside the photo, arranged by its alignment: spread so its first item starts at
+ * the photo's left edge and its last ends at the right edge (a single item is centered), or grouped at the
+ * left, center or right. The text shrinks to fit the borders' depth and the photo's width.
+ * A row with no border to print in is left out; `null` when nothing is placed.
+ */
+export function captionPlacement(rows: CaptionRows, layout: Layout, measure: Measure): CaptionPlacement | null {
+  const canvas = layout.canvasSize, photo = layout.imageRect;
+  if (!(photo.width > 0)) return null;
+  const printed = [
+    { above: true, items: rows.above, gap: photo.y, alignment: rows.aboveAlignment },
+    { above: false, items: rows.below, gap: canvas.height - (photo.y + photo.height), alignment: rows.belowAlignment },
+  ].filter((row) => row.items.length > 0 && row.gap >= 1);
+  if (printed.length === 0) return null;
+
+  // Every width grows in proportion to the font size, so measure at size 1 and scale.
+  const widthsAtOne = (items: CaptionItem[]) => items.map((i) => measure(i.text));
+  let fontSize = Math.min(canvas.width, canvas.height) * SIZE_SHARE;
+  for (const { items, gap, alignment } of printed) {
+    const spacing = alignment === 'spread' ? MINIMUM_SPACING : GROUPED_SPACING;
+    const needed = widthsAtOne(items).reduce((a, b) => a + b, 0) + spacing * (items.length - 1);
+    fontSize = Math.min(fontSize, gap / GAP_IN_FONT_SIZES, photo.width / needed);
+  }
+
+  const rowHeight = fontSize * LINE_HEIGHT;
+  const entries: CaptionPlacement['entries'] = [];
+  for (const { above, items, alignment } of printed) {
+    const widths = widthsAtOne(items).map((w) => w * fontSize);
+    const total = widths.reduce((a, b) => a + b, 0);
+    const y = above ? photo.y - fontSize * PHOTO_SPACING - rowHeight : photo.y + photo.height + fontSize * PHOTO_SPACING;
+    let spacing: number, x: number;
+    if (alignment === 'spread') {
+      spacing = items.length > 1 ? (photo.width - total) / (items.length - 1) : 0;
+      x = items.length > 1 ? photo.x : photo.x + photo.width / 2 - widths[0] / 2;
+    } else {
+      spacing = fontSize * GROUPED_SPACING;
+      const grouped = total + spacing * (items.length - 1);
+      x = alignment === 'leading' ? photo.x
+        : alignment === 'trailing' ? photo.x + photo.width - grouped
+        : photo.x + photo.width / 2 - grouped / 2;
+    }
+    items.forEach((item, index) => {
+      entries.push({ item, frame: { x, y, width: widths[index], height: rowHeight } });
+      x += widths[index] + spacing;
+    });
+  }
+  return { fontSize, entries };
+}
+
+/** Dark text on a light border, light text on a dark one; over the blurred photo, light text (drawn with a shadow). */
+export function captionTextColor(borderHex: string, fill: BorderFill): string {
+  if (fill !== 'color') return 'rgba(255,255,255,0.9)';
+  const linear = [1, 3, 5].map((i) => {
+    const c = parseInt(borderHex.slice(i, i + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  return luminance > 0.25 ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)';
 }
