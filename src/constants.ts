@@ -4,6 +4,7 @@ export const nav = [
   ['Download', appUrl],
   ['Reviews', '/reviews'],
   ['Features', '/features'],
+  ['Web Editor', '/editor'],
   ['Support', '/support'],
   ['Feedback', '/feedback'],
   ['About', '/about'],

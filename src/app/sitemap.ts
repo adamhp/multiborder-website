@@ -21,6 +21,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.1,
     },
     {
+      url: 'https://www.multiborder.io/editor',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
       url: 'https://www.multiborder.io/support',
       lastModified: new Date(),
       changeFrequency: 'monthly',
