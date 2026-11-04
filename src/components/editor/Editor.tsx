@@ -378,7 +378,7 @@ export function Editor() {
 
       <div className='mt-16 flex flex-col items-center gap-4 border-t border-stone-700 pt-10 text-center'>
         <p className='max-w-xl text-stone-300'>
-          Want HDR photos, HEIC, more fonts, caption icons and borders straight from the Photos app? Get multiborder for iPhone and iPad.
+          Want HDR photos, HEIC downloads, albums and borders straight from the Photos app? Get multiborder for iPhone and iPad.
         </p>
         <AppStoreLink />
       </div>
