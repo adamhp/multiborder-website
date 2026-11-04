@@ -6,6 +6,7 @@ import {
   canvasWidthOverHeight,
   cornerRadius,
   DEFAULT_SETTINGS,
+  exportType,
   loadSettings,
   moveCaptionField,
   type BorderSettings,
@@ -119,5 +120,59 @@ describe('moveCaptionField', () => {
     expect(moveCaptionField(s, 'date', 'below', -5).captionBelow[0]).toBe('date');
     // The original is untouched.
     expect(s.captionAbove).toEqual(['date', 'handle']);
+  });
+});
+
+describe('per-side borders', () => {
+  for (const exportWidth of [0, 1080]) {
+    it(`unevenSidesKeepEachWidthAndCenterBetweenThem exportWidth=${exportWidth}`, () => {
+      const source = { width: 3024, height: 4032 };
+      const sides = { top: 0.02, left: 0.04, bottom: 0.16, right: 0.08 };
+      const { canvasSize: canvas, imageRect: rect } = layout(source, settings({ aspectRatio: '1:1', isPerSide: true, sides, exportWidth }));
+      const shorter = Math.min(canvas.width, canvas.height);
+      expect(rect.y).toBeGreaterThanOrEqual(sides.top * shorter - 0.5);
+      expect(rect.x).toBeGreaterThanOrEqual(sides.left * shorter - 0.5);
+      expect(canvas.height - (rect.y + rect.height)).toBeGreaterThanOrEqual(sides.bottom * shorter - 0.5);
+      expect(canvas.width - (rect.x + rect.width)).toBeGreaterThanOrEqual(sides.right * shorter - 0.5);
+      expect(Math.abs(rect.y - sides.top * shorter)).toBeLessThanOrEqual(2);
+      expect(Math.abs(canvas.height - (rect.y + rect.height) - sides.bottom * shorter)).toBeLessThanOrEqual(2);
+      const spareLeft = rect.x - sides.left * shorter, spareRight = canvas.width - (rect.x + rect.width) - sides.right * shorter;
+      expect(Math.abs(spareLeft - spareRight)).toBeLessThanOrEqual(1.5);
+      expect(Math.abs(rect.width / rect.height - source.width / source.height)).toBeLessThan(0.001);
+    });
+  }
+
+  it('equalSidesMatchTheSingleWidth', () => {
+    const source = { width: 3024, height: 4032 };
+    for (const f of [0, 0.05, 0.16]) {
+      const perSide = settings({ isPerSide: true, sides: { top: f, left: f, bottom: f, right: f } });
+      expect(layout(source, perSide)).toEqual(layout(source, settings({ paddingFraction: f })));
+    }
+  });
+
+  it('sidesAreIgnoredWhileOff', () => {
+    const source = { width: 3024, height: 4032 };
+    const withSides = settings({ paddingFraction: 0.05, sides: { top: 0.16, left: 0, bottom: 0, right: 0 } });
+    expect(layout(source, withSides)).toEqual(layout(source, settings({ paddingFraction: 0.05 })));
+  });
+});
+
+describe('export format', () => {
+  it('originalKeepsPNGAndOtherwiseExportsJPEG', () => {
+    expect(exportType('original', 'image/png')).toBe('image/png');
+    expect(exportType('original', 'image/jpeg')).toBe('image/jpeg');
+    expect(exportType('original', 'image/heic')).toBe('image/jpeg');
+    expect(exportType('original', 'image/webp')).toBe('image/jpeg');
+    expect(exportType('png', 'image/jpeg')).toBe('image/png');
+    expect(exportType('jpeg', 'image/png')).toBe('image/jpeg');
+  });
+
+  it('loadsOnlyKnownExportOptions', () => {
+    const store = new Map([['multiborder.settings', JSON.stringify({ exportWidth: 50, exportFormat: 'heic', handleStyle: 'myspace', captionFont: 'comicSans' })]]);
+    const loaded = loadSettings({ getItem: (k: string) => store.get(k) ?? null } as Storage);
+    expect(loaded.exportWidth).toBe(0);
+    expect(loaded.exportFormat).toBe('original');
+    expect(loaded.handleStyle).toBe('instagram');
+    expect(loaded.captionFont).toBe('spaceMono');
   });
 });

@@ -6,3 +6,7 @@ it('exportNameReplacesTheExtension', () => {
   expect(exportName('beach.day.heic')).toBe('beach.day-multiborder.jpg');
   expect(exportName('.png')).toBe('photo-multiborder.jpg');
 });
+
+it('exportNameUsesThePNGExtension', () => {
+  expect(exportName('IMG_2066.JPG', 'image/png')).toBe('IMG_2066-multiborder.png');
+});

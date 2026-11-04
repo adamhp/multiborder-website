@@ -33,7 +33,7 @@ describe('photo details', () => {
 
   it('missingTagsAreOmitted', () => {
     expect(detailsFromTags({})).toEqual({});
-    const rows = captionRows({}, settings({ handle: 'adam' }));
+    const rows = captionRows({}, settings({ handle: 'adam', handleStyle: 'at' }));
     expect(texts(rows.above)).toEqual(['@adam']);
     expect(rows.below).toEqual([]);
   });
@@ -61,7 +61,8 @@ describe('caption rows', () => {
   });
 
   it('handleStripsLeadingAt', () => {
-    expect(texts(captionRows({}, settings({ handle: '  @@adam ' })).above)).toEqual(['@adam']);
+    expect(texts(captionRows({}, settings({ handle: '  @@adam ', handleStyle: 'at' })).above)).toEqual(['@adam']);
+    expect(texts(captionRows({}, settings({ handle: '  @@adam ' })).above)).toEqual(['adam']);
     expect(captionRows({}, settings({ handle: '  @ ' })).above).toEqual([]);
   });
 
@@ -81,5 +82,44 @@ describe('caption rows', () => {
     const rows = captionRows(details, settings({ showsCaption: false, handle: 'adam' }));
     expect(rows.above).toEqual([]);
     expect(rows.below).toEqual([]);
+  });
+});
+
+describe('caption content parity', () => {
+  it('titleSkipsCameraTextAndIsShortened', () => {
+    expect(detailsFromTags({ ObjectName: '  Sunset\n over   the bay ' }).title).toBe('Sunset over the bay');
+    expect(detailsFromTags({ ImageDescription: 'OLYMPUS DIGITAL CAMERA' }).title).toBeUndefined();
+    expect(detailsFromTags({ ImageDescription: 'Shot on Canon EOS R5', Model: 'Canon EOS R5' }).title).toBeUndefined();
+    expect(detailsFromTags({ ImageDescription: 'Harbor', Caption: 'Beach' }).title).toBe('Beach');
+    const long = detailsFromTags({ title: 'x'.repeat(80) }).title!;
+    expect(long).toHaveLength(60);
+    expect(long.endsWith('…')).toBe(true);
+  });
+
+  it('filenameDropsItsExtension', () => {
+    const rows = captionRows(detailsFromTags({}, 'IMG_1234.HEIC'), settings({ captionFields: ['filename'] }));
+    expect(texts(rows.above)).toEqual(['IMG_1234']);
+  });
+
+  it('handleStylesSetItsTextAndIcon', () => {
+    const handle = (handleStyle: BorderSettings['handleStyle']) => captionRows({}, settings({ handle: 'adam', handleStyle })).above[0];
+    expect(handle('instagram')).toEqual({ field: 'handle', text: 'adam', icon: 'instagram' });
+    expect(handle('flickr')).toEqual({ field: 'handle', text: 'adam', icon: 'flickr' });
+    expect(handle('website')).toEqual({ field: 'handle', text: 'adam', icon: 'globe' });
+    expect(handle('at')).toEqual({ field: 'handle', text: '@adam' });
+    expect(handle('plain')).toEqual({ field: 'handle', text: 'adam' });
+  });
+
+  it('iconsFollowTheirSwitches', () => {
+    const details = detailsFromTags({ DateTimeOriginal: '2026:11:02 23:30:00', ISO: 80, FNumber: 2 });
+    const s = settings({ captionFields: ['date', 'iso', 'aperture', 'handle'], captionAbove: ['date', 'handle'], handle: 'adam' });
+    expect(captionRows(details, s).above[0].icon).toBe('calendar');
+    expect(captionRows(details, s).below.map((i) => i.icon)).toEqual(['aperture', undefined]);
+    expect(captionRows(details, { ...s, captionHiddenIcons: ['date'] }).above[0].icon).toBeUndefined();
+    // With every icon off, the handle's style icon goes too.
+    const off = captionRows(details, { ...s, showsCaptionIcons: false });
+    expect([...off.above, ...off.below].every((i) => i.icon === undefined)).toBe(true);
+    // Hiding the handle in captionHiddenIcons doesn't apply: its style has its own text-only choice.
+    expect(captionRows(details, { ...s, captionHiddenIcons: ['handle'] }).above[1].icon).toBe('instagram');
   });
 });

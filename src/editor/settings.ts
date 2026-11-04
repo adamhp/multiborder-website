@@ -8,16 +8,31 @@ export type Rect = Size & { x: number; y: number };
 export const ASPECT_RATIOS = ['original', '2:3', '3:4', '4:5', '1:1', '9:16'] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
 
-export const CAPTION_FIELDS = ['date', 'handle', 'camera', 'focalLength', 'aperture', 'shutter', 'iso'] as const;
+export const CAPTION_FIELDS = ['date', 'title', 'filename', 'handle', 'camera', 'focalLength', 'aperture', 'shutter', 'iso'] as const;
 export type CaptionField = (typeof CAPTION_FIELDS)[number];
 export const CAPTION_ALIGNMENTS = ['spread', 'leading', 'center', 'trailing'] as const;
 export type CaptionAlignment = (typeof CAPTION_ALIGNMENTS)[number];
 export type BorderFill = 'color' | 'blur';
+/** Where the handle points, shown as the icon before it. */
+export const HANDLE_STYLES = ['instagram', 'flickr', 'at', 'website', 'plain'] as const;
+export type HandleStyle = (typeof HANDLE_STYLES)[number];
+/** The caption's typefaces, in the order the app's font menu lists them. */
+export const CAPTION_FONTS = ['dmMono', 'dmSans', 'ibmPlexMono', 'inter', 'jetBrainsMono', 'spaceGrotesk', 'spaceMono'] as const;
+export type CaptionFont = (typeof CAPTION_FONTS)[number];
+export const EXPORT_FORMATS = ['original', 'jpeg', 'png'] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+/** Output widths offered; 0 is the photo's full resolution. */
+export const EXPORT_WIDTHS = [0, 2048, 1080] as const;
+export type Insets = { top: number; left: number; bottom: number; right: number };
 
 export type BorderSettings = {
   aspectRatio: AspectRatio;
   isLandscape: boolean;
   paddingFraction: number;
+  /** Whether each side uses its own thickness from `sides` instead of `paddingFraction`. */
+  isPerSide: boolean;
+  /** Per-side thicknesses, kept while `isPerSide` is off; `null` until it's first turned on. */
+  sides: Insets | null;
   /** `#rrggbb`. */
   borderColor: string;
   fill: BorderFill;
@@ -28,6 +43,7 @@ export type BorderSettings = {
   shadowFraction: number;
   /** Maximum output width in pixels; 0 exports at the photo's full resolution. */
   exportWidth: number;
+  exportFormat: ExportFormat;
   showsCaption: boolean;
   captionFields: CaptionField[];
   /** Left to right; with `captionBelow`, lists every field exactly once. */
@@ -36,6 +52,12 @@ export type BorderSettings = {
   captionAlignmentAbove: CaptionAlignment;
   captionAlignmentBelow: CaptionAlignment;
   handle: string;
+  handleStyle: HandleStyle;
+  /** Details printed without their icon. */
+  captionHiddenIcons: CaptionField[];
+  /** Whether any caption icons are printed; when on, `captionHiddenIcons` still hides single ones. */
+  showsCaptionIcons: boolean;
+  captionFont: CaptionFont;
   cameraShowsMake: boolean;
   cameraShowsModel: boolean;
 };
@@ -49,6 +71,8 @@ export const DEFAULT_SETTINGS: BorderSettings = {
   aspectRatio: '4:5',
   isLandscape: false,
   paddingFraction: 0,
+  isPerSide: false,
+  sides: null,
   borderColor: '#ffffff',
   fill: 'color',
   blurFraction: 0.04,
@@ -57,13 +81,19 @@ export const DEFAULT_SETTINGS: BorderSettings = {
   hasShadow: false,
   shadowFraction: 0.01,
   exportWidth: 0,
+  exportFormat: 'original',
   showsCaption: false,
-  captionFields: [...CAPTION_FIELDS],
-  captionAbove: ['date', 'handle'],
+  // The filename starts off; the title is usually the better label.
+  captionFields: CAPTION_FIELDS.filter((f) => f !== 'filename'),
+  captionAbove: ['date', 'title', 'filename', 'handle'],
   captionBelow: ['camera', 'focalLength', 'aperture', 'shutter', 'iso'],
   captionAlignmentAbove: 'spread',
   captionAlignmentBelow: 'spread',
   handle: '',
+  handleStyle: 'instagram',
+  captionHiddenIcons: [],
+  showsCaptionIcons: true,
+  captionFont: 'spaceMono',
   cameraShowsMake: true,
   cameraShowsModel: true,
 };
@@ -78,6 +108,18 @@ const PORTRAIT_RATIOS: Record<AspectRatio, number | null> = {
   '1:1': 1,
   '9:16': 9 / 16,
 };
+
+/** The thickness of each side that the layout uses. */
+export function insets(s: BorderSettings): Insets {
+  const uniform = { top: s.paddingFraction, left: s.paddingFraction, bottom: s.paddingFraction, right: s.paddingFraction };
+  return s.isPerSide ? s.sides ?? uniform : uniform;
+}
+
+/** The type an export is encoded as: PNG stays PNG with `original`; everything else the browser can't write is JPEG. */
+export function exportType(format: ExportFormat, sourceType: string): 'image/jpeg' | 'image/png' {
+  if (format === 'png' || (format === 'original' && sourceType === 'image/png')) return 'image/png';
+  return 'image/jpeg';
+}
 
 /** Whether turning the canvas sideways changes its shape. */
 export const hasOrientation = (ratio: AspectRatio) => ratio !== 'original' && ratio !== '1:1';
@@ -144,9 +186,17 @@ export function loadSettings(storage = browserStorage()): BorderSettings {
   if (!ASPECT_RATIOS.includes(s.aspectRatio)) s.aspectRatio = DEFAULT_SETTINGS.aspectRatio;
   if (s.fill !== 'color' && s.fill !== 'blur') s.fill = DEFAULT_SETTINGS.fill;
   if (!/^#[0-9a-f]{6}$/i.test(s.borderColor)) s.borderColor = DEFAULT_SETTINGS.borderColor;
+  if (!HANDLE_STYLES.includes(s.handleStyle)) s.handleStyle = DEFAULT_SETTINGS.handleStyle;
+  if (!CAPTION_FONTS.includes(s.captionFont)) s.captionFont = DEFAULT_SETTINGS.captionFont;
+  if (!EXPORT_FORMATS.includes(s.exportFormat)) s.exportFormat = DEFAULT_SETTINGS.exportFormat;
+  if (!(EXPORT_WIDTHS as readonly number[]).includes(s.exportWidth)) s.exportWidth = DEFAULT_SETTINGS.exportWidth;
+  const sides = stored.sides as Partial<Insets> | null | undefined;
+  s.sides = sides && (['top', 'left', 'bottom', 'right'] as const).every((k) => typeof sides[k] === 'number')
+    ? (sides as Insets) : null;
   if (!CAPTION_ALIGNMENTS.includes(s.captionAlignmentAbove)) s.captionAlignmentAbove = 'spread';
   if (!CAPTION_ALIGNMENTS.includes(s.captionAlignmentBelow)) s.captionAlignmentBelow = 'spread';
   s.captionFields = [...new Set(fields(stored.captionFields, DEFAULT_SETTINGS.captionFields))];
+  s.captionHiddenIcons = [...new Set(fields(stored.captionHiddenIcons, []))];
   // Repaired like the app: each field in exactly one row, missing ones at the end of their default row.
   const above = [...new Set(fields(stored.captionAbove, DEFAULT_SETTINGS.captionAbove))];
   const below = [...new Set(fields(stored.captionBelow, DEFAULT_SETTINGS.captionBelow))].filter((f) => !above.includes(f));

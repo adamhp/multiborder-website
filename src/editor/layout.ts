@@ -1,5 +1,5 @@
 // Canvas and photo placement, ported line for line from `ImageComposer.layout` in the iOS app.
-import { canvasWidthOverHeight, type BorderSettings, type Rect, type Size } from './settings';
+import { canvasWidthOverHeight, insets as sideInsets, type BorderSettings, type Rect, type Size } from './settings';
 
 export type Layout = {
   canvasSize: Size;
@@ -22,8 +22,9 @@ export function layout(source: Size, s: BorderSettings, maxPixels = MAX_CANVAS_P
     return { canvasSize: { width: 0, height: 0 }, imageRect: { x: 0, y: 0, width: 0, height: 0 } };
   }
   const ratio = canvasWidthOverHeight(s) ?? source.width / source.height;
-  const inset = Math.min(Math.max(s.paddingFraction, 0), 0.45);
-  const insets = { top: inset, left: inset, bottom: inset, right: inset };
+  const clamp = (value: number) => Math.min(Math.max(value, 0), 0.45);
+  const raw = sideInsets(s);
+  const insets = { top: clamp(raw.top), left: clamp(raw.left), bottom: clamp(raw.bottom), right: clamp(raw.right) };
   // Padding is measured on the shorter side; this converts it to units of canvas width.
   const shorterPerWidth = Math.min(1, 1 / ratio);
   const innerWidthPerWidth = 1 - (insets.left + insets.right) * shorterPerWidth;

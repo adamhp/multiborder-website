@@ -5,17 +5,13 @@ import { Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { AppStoreLink } from '@/components/AppStoreLink';
-import { Controls } from '@/components/editor/Controls';
-import { DecodeError, drawComposite, exportJpeg, exportName, loadFont, loadPhoto, supportsCanvasFilter, type LoadedPhoto } from '@/editor/compose';
+import { Controls, ExportOptions } from '@/components/editor/Controls';
+import { DecodeError, drawComposite, exportImage, exportName, loadPhoto, supportsCanvasFilter, type LoadedPhoto } from '@/editor/compose';
+import { loadCaptionFont } from '@/editor/fonts';
 import { layout } from '@/editor/layout';
 import { loadSettings, saveSettings, type BorderSettings } from '@/editor/settings';
 
 type Failure = { id: string; name: string; message: string };
-
-/** The site's Space Mono, as `next/font` named it. */
-function captionFontFamily(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue('--font-space-mono').trim() || 'monospace';
-}
 
 function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
@@ -44,7 +40,7 @@ function Thumbnail({ photo }: { photo: LoadedPhoto }) {
 
 /** The selected photo on its border, redrawn whenever the settings or the space available change. */
 /** Only the photo in view and its neighbors are drawn, so a long carousel doesn't redraw every photo on each change. */
-function Preview({ photo, settings, fontFamily, active }: { photo: LoadedPhoto; settings: BorderSettings; fontFamily: string; active: boolean }) {
+function Preview({ photo, settings, fontsLoaded, active }: { photo: LoadedPhoto; settings: BorderSettings; fontsLoaded: number; active: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLCanvasElement>(null);
   const [room, setRoom] = useState({ width: 0, height: 0 });
@@ -76,12 +72,12 @@ function Preview({ photo, settings, fontFamily, active }: { photo: LoadedPhoto; 
     canvas.style.height = `${result.canvasSize.height / dpr}px`;
     // A drawing failure (e.g. the browser is out of canvas memory) shouldn't take the whole page down.
     try {
-      drawComposite(ctx, photo.preview, result, settings, photo.details, fontFamily);
+      drawComposite(ctx, photo.preview, result, settings, photo.details);
       setFailed(false);
     } catch {
       setFailed(true);
     }
-  }, [photo, settings, fontFamily, room, active]);
+  }, [photo, settings, fontsLoaded, room, active]);
 
   return (
     <div ref={box} className='flex w-full flex-col items-center justify-center' style={{ minHeight: room.height || undefined }}>
@@ -104,7 +100,8 @@ export function Editor() {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [fontFamily, setFontFamily] = useState('monospace');
+  // Counts caption fonts as they finish loading, so the previews redraw in them.
+  const [fontsLoaded, setFontsLoaded] = useState(0);
   const [canBlur, setCanBlur] = useState(true);
   const input = useRef<HTMLInputElement>(null);
 
@@ -112,9 +109,12 @@ export function Editor() {
   useEffect(() => {
     setSettings(loadSettings());
     setCanBlur(supportsCanvasFilter());
-    const family = captionFontFamily();
-    loadFont(family).then(() => setFontFamily(family));
   }, []);
+
+  const captionFont = settings?.captionFont;
+  useEffect(() => {
+    if (captionFont) loadCaptionFont(captionFont).then(() => setFontsLoaded((n) => n + 1));
+  }, [captionFont]);
 
   const change = useCallback((patch: Partial<BorderSettings>) => {
     setSettings((current) => {
@@ -177,7 +177,8 @@ export function Editor() {
     setBusy('Exporting…');
     setNotice(null);
     try {
-      download(await exportJpeg(selected, settings, fontFamily), exportName(selected.name));
+      const blob = await exportImage(selected, settings);
+      download(blob, exportName(selected.name, blob.type));
     } catch {
       setNotice(`Couldn't export ${selected.name}. Try the 1080 px size, or fewer photos at once.`);
     } finally {
@@ -194,11 +195,14 @@ export function Editor() {
     try {
       for (const [index, photo] of photos.entries()) {
         setBusy(`Exporting ${index + 1} of ${photos.length}…`);
-        let name = exportName(photo.name);
-        for (let n = 2; files[name]; n++) name = exportName(photo.name).replace(/\.jpg$/, `-${n}.jpg`);
         try {
-          // JPEGs are already compressed, so they're stored as they are.
-          files[name] = [new Uint8Array(await (await exportJpeg(photo, settings, fontFamily)).arrayBuffer()), { level: 0 }];
+          const blob = await exportImage(photo, settings);
+          // Names that differ only in case would overwrite each other when unzipped on a Mac or PC.
+          const taken = new Set(Object.keys(files).map((n) => n.toLowerCase()));
+          let name = exportName(photo.name, blob.type);
+          for (let n = 2; taken.has(name.toLowerCase()); n++) name = exportName(photo.name, blob.type).replace(/(\.\w+)$/, `-${n}$1`);
+          // JPEGs and PNGs are already compressed, so they're stored as they are.
+          files[name] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }];
         } catch {
           skipped.push(photo.name);
         }
@@ -275,7 +279,7 @@ export function Editor() {
                 <CarouselContent>
                   {photos.map((photo, index) => (
                     <CarouselItem key={photo.id} aria-label={`${index + 1} of ${photos.length}`}>
-                      <Preview photo={photo} settings={settings} fontFamily={fontFamily} active={Math.abs(index - selectedIndex) <= 1} />
+                      <Preview photo={photo} settings={settings} fontsLoaded={fontsLoaded} active={Math.abs(index - selectedIndex) <= 1} />
                     </CarouselItem>
                   ))}
                 </CarouselContent>
@@ -327,20 +331,7 @@ export function Editor() {
             {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
 
             <div className='space-y-2 border-t border-white/10 pt-4'>
-              {settings && (
-                <div className='flex items-center justify-between text-xs text-stone-400'>
-                  <span id='export-size'>Export size</span>
-                  <div className='flex gap-1' role='group' aria-labelledby='export-size'>
-                    {([[0, 'Full size'], [1080, '1080 px']] as const).map(([width, title]) => (
-                      <button key={width} type='button' aria-pressed={settings.exportWidth === width} onClick={() => change({ exportWidth: width })}
-                        className={clsx('h-7 rounded-full border px-3', settings.exportWidth === width
-                          ? 'border-white/15 bg-stone-800 text-amber-500' : 'border-transparent text-stone-300 hover:text-stone-100')}>
-                        {title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {settings && <ExportOptions settings={settings} onChange={change} />}
               <div className='flex gap-2'>
                 <button
                   type='button'

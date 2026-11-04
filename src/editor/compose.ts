@@ -1,9 +1,11 @@
 // Draws a photo on its border in a canvas, as `ImageComposer.composite` does in the iOS app.
 // Browser only: everything here needs the DOM.
-import { captionPlacement, captionRows, captionTextColor, detailsFromTags, readTags, type PhotoDetails } from './caption';
+import { captionPlacement, captionRows, captionTextColor, detailsFromTags, readTags, type FontMetrics, type PhotoDetails } from './caption';
+import { CAPTION_FONT_INFO, loadCaptionFont } from './fonts';
+import { drawCaptionIcon, iconBottomPadding } from './icons';
 import { layout, type Layout } from './layout';
 import { serialQueue } from './queue';
-import { blurRadius, cornerRadius, shadowBlur, type BorderSettings, type Size } from './settings';
+import { blurRadius, cornerRadius, exportType, shadowBlur, type BorderSettings, type Size } from './settings';
 
 export type LoadedPhoto = {
   id: string;
@@ -91,7 +93,7 @@ export function loadPhoto(file: File): Promise<LoadedPhoto> {
         size: { width: bitmap.width, height: bitmap.height },
         // A bitmap rather than the canvas, so the copy's canvas memory can be given back.
         preview: await createImageBitmap(copy),
-        details: detailsFromTags(tags),
+        details: detailsFromTags(tags, file.name),
       };
     } finally {
       bitmap.close();
@@ -162,9 +164,22 @@ function photoPath(ctx: CanvasRenderingContext2D, layout: Layout, radius: number
   }
 }
 
+/** The caption font's measurements at size 1, from the canvas's own text metrics. */
+function fontMetrics(ctx: CanvasRenderingContext2D, family: string): FontMetrics {
+  ctx.font = `100px ${family}`;
+  const caps = ctx.measureText('H');
+  const line = ctx.measureText('Hg');
+  return {
+    measure: (text) => ctx.measureText(text).width / 100,
+    capHeight: (caps.actualBoundingBoxAscent || 70) / 100,
+    ascent: (line.fontBoundingBoxAscent || 90) / 100,
+    descent: (line.fontBoundingBoxDescent || 25) / 100,
+  };
+}
+
 /**
  * Draws `image` on a canvas of `layout.canvasSize` filled with the border color or the blurred photo,
- * with its shadow and rounded corners, then the caption in `fontFamily` (which must already be loaded).
+ * with its shadow and rounded corners, then the caption (whose font must already be loaded; see `loadCaptionFont`).
  */
 export function drawComposite(
   ctx: CanvasRenderingContext2D,
@@ -172,7 +187,6 @@ export function drawComposite(
   layout: Layout,
   s: BorderSettings,
   details: PhotoDetails,
-  fontFamily: string,
 ): void {
   const { canvasSize: size, imageRect: rect } = layout;
   ctx.save();
@@ -191,10 +205,16 @@ export function drawComposite(
   const radius = cornerRadius(s, size, rect);
   const shadow = shadowBlur(s, size);
   if (shadow > 0) {
+    // Only the shadow should land on the canvas, so a transparent photo shows its border through it: the
+    // shape is drawn a canvas width off to the side and its shadow offset back under the photo (shadow
+    // offsets ignore the transform).
+    const away = size.width * 2;
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
     ctx.shadowBlur = shadow;
-    ctx.shadowOffsetY = shadow / 4;
+    ctx.shadowOffsetX = -away * ctx.getTransform().a;
+    ctx.shadowOffsetY = (shadow / 4) * ctx.getTransform().d;
+    ctx.translate(away, 0);
     ctx.fillStyle = '#000';
     photoPath(ctx, layout, radius);
     ctx.fill();
@@ -209,53 +229,53 @@ export function drawComposite(
   ctx.restore();
 
   const fill = s.fill === 'blur' && supportsCanvasFilter() ? 'blur' : 'color';
-  const font = (px: number) => `${px}px ${fontFamily}`;
-  ctx.font = font(100);
-  const placement = captionPlacement(captionRows(details, s), layout, (text) => ctx.measureText(text).width / 100);
+  const family = CAPTION_FONT_INFO[s.captionFont].family;
+  const placement = captionPlacement(captionRows(details, s), layout, fontMetrics(ctx, family));
   if (placement) {
-    ctx.font = font(placement.fontSize);
-    ctx.fillStyle = captionTextColor(s.borderColor, fill);
-    ctx.textBaseline = 'middle';
+    const color = captionTextColor(s.borderColor, fill);
+    ctx.font = `${placement.fontSize}px ${family}`;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'alphabetic';
     if (fill === 'blur') {
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = placement.fontSize * 0.4;
     }
+    const { iconSize, iconGap } = placement;
     for (const { item, frame } of placement.entries) {
-      ctx.fillText(item.text, frame.x, frame.y + frame.height / 2);
+      const baseline = placement.baseline(frame);
+      if (item.icon) {
+        // Standing on the text's baseline, as tall as its capitals.
+        const height = iconSize.height * (1 - iconBottomPadding(item.icon));
+        drawCaptionIcon(ctx, item.icon, frame.x, baseline - iconSize.height, iconSize.width, height, color);
+      }
+      ctx.fillText(item.text, frame.x + (item.icon ? iconSize.width + iconGap : 0), baseline);
     }
   }
   ctx.restore();
 }
 
-/** Waits for the caption font so measuring and drawing use it rather than the fallback. */
-export async function loadFont(fontFamily: string): Promise<void> {
-  try {
-    await document.fonts.load(`100px ${fontFamily}`, 'ƒ/1.8 ISO');
-  } catch {
-    // Draws with the fallback font.
-  }
+/** The photo at export size on its border, encoded as `s.exportFormat` asks. Exports run one at a time. */
+export function exportImage(photo: LoadedPhoto, s: BorderSettings): Promise<Blob> {
+  return decodeQueue(() => renderImage(photo, s));
 }
 
-/** The photo at export size on its border, as a JPEG. Renders full size, so callers export one photo at a time. */
-export function exportJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: string): Promise<Blob> {
-  return decodeQueue(() => renderJpeg(photo, s, fontFamily));
-}
-
-async function renderJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: string): Promise<Blob> {
+async function renderImage(photo: LoadedPhoto, s: BorderSettings): Promise<Blob> {
+  await loadCaptionFont(s.captionFont);
   const bitmap = await decode(photo.file);
   const [element, ctx] = (() => {
     try {
       const result = layout({ width: bitmap.width, height: bitmap.height }, s);
       const [element, ctx] = canvas(result.canvasSize.width, result.canvasSize.height);
-      drawComposite(ctx, bitmap, result, s, photo.details, fontFamily);
+      drawComposite(ctx, bitmap, result, s, photo.details);
       return [element, ctx] as const;
     } finally {
       bitmap.close();
     }
   })();
+  const type = exportType(s.exportFormat, photo.file.type);
   try {
     return await new Promise<Blob>((resolve, reject) =>
-      element.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Export failed'))), 'image/jpeg', JPEG_QUALITY),
+      element.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Export failed'))), type, type === 'image/jpeg' ? JPEG_QUALITY : undefined),
     );
   } finally {
     ctx.reset?.();
@@ -263,7 +283,7 @@ async function renderJpeg(photo: LoadedPhoto, s: BorderSettings, fontFamily: str
   }
 }
 
-/** "IMG_2066.JPG" → "IMG_2066-multiborder.jpg". */
-export function exportName(name: string): string {
-  return `${name.replace(/\.[^.]+$/, '') || 'photo'}-multiborder.jpg`;
+/** "IMG_2066.JPG" → "IMG_2066-multiborder.jpg", or ".png" for a PNG. */
+export function exportName(name: string, type = 'image/jpeg'): string {
+  return `${name.replace(/\.[^.]+$/, '') || 'photo'}-multiborder.${type === 'image/png' ? 'png' : 'jpg'}`;
 }

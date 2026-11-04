@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Container } from '@/components/Container';
 import { Editor } from '@/components/editor/Editor';
+import './editor.css';
 
 export const metadata: Metadata = {
   title: 'Web Editor · Multiborder',
