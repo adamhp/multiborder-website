@@ -4,18 +4,19 @@ import { Container } from '@/components/Container';
 import { SpotlightVideo } from '@/components/SpotlightVideo';
 import { spotlights, tiles } from '@/content/features';
 
-export function FeaturesSection() {
+// The title is the page's h1 on /features and an h2 under the hero on the home page.
+export function FeaturesSection({ titleAs: Title = 'h2' }: { titleAs?: 'h1' | 'h2' }) {
   return (
     <section id='features' aria-labelledby='features-title' className='scroll-mt-8 pb-24 sm:pb-32'>
       <Container>
         <div className='mx-auto max-w-2xl text-center'>
           <p className='text-base/7 font-semibold text-amber-600'>New in 3.0</p>
-          <h2
+          <Title
             id='features-title'
             className='mt-2 text-3xl tracking-tight text-balance text-stone-100 sm:text-4xl'
           >
             More ways to make every border yours
-          </h2>
+          </Title>
         </div>
 
         <div className='mt-16 space-y-16 sm:mt-20 lg:space-y-24'>

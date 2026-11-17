@@ -21,7 +21,7 @@ export default function About() {
         <div className="relative aspect-square w-80 flex-none overflow-hidden rounded-xl sm:rounded-2xl mb-12">
           <Image
             src={meandrue}
-            alt="me and my dog"
+            alt="Adam, who made Multiborder, with his dog Rue"
             className="absolute inset-0 h-full w-full object-cover"
           />
         </div>

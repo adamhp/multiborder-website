@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function Features() {
   return (
     <div className="pt-16 sm:pt-24">
-      <FeaturesSection />
+      <FeaturesSection titleAs='h1' />
     </div>
   );
 }

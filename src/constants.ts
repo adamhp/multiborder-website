@@ -10,3 +10,5 @@ export const nav = [
   ['Feedback', '/feedback'],
   ['About', '/about'],
 ];
+// The canonical host: www.multiborder.io 301-redirects here.
+export const siteUrl = 'https://multiborder.io';

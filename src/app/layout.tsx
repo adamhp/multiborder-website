@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Space_Mono } from 'next/font/google';
 import Script from 'next/script';
+import { siteUrl } from '@/constants';
+import { siteOpenGraph } from '@/lib/metadata';
 import './globals.css';
 
 const spaceMono = Space_Mono({
@@ -11,7 +13,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.multiborder.io'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Multiborder · Add borders to multiple photos at once',
     template: '%s · Multiborder',
@@ -20,12 +22,7 @@ export const metadata: Metadata = {
     'Easily add borders to multiple images, preserving aspect ratio to optimize for social media posts.',
   applicationName: 'Multiborder',
   alternates: { canonical: './' },
-  openGraph: {
-    type: 'website',
-    siteName: 'Multiborder',
-    url: './',
-    locale: 'en_US',
-  },
+  openGraph: siteOpenGraph,
   twitter: { card: 'summary_large_image' },
   itunes: { appId: '6473557515' },
 };

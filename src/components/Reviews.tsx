@@ -7,12 +7,12 @@ export function Reviews() {
     <div className='relative isolate pt-24 pb-32 sm:pt-32'>
       <div className='mx-auto max-w-7xl px-6 lg:px-8'>
         <div className='mx-auto max-w-2xl text-center'>
-          <h2 className='text-base/7 font-semibold text-amber-600 dark:text-amber-600'>
+          <p className='text-base/7 font-semibold text-amber-600 dark:text-amber-600'>
             Testimonials
-          </h2>
-          <p className='mt-2 text-4xl tracking-tight text-balance text-stone-800 sm:text-5xl dark:text-white'>
-            Read the reviews
           </p>
+          <h1 className='mt-2 text-4xl tracking-tight text-balance text-stone-800 sm:text-5xl dark:text-white'>
+            Read the reviews
+          </h1>
         </div>
         <div className='mx-auto mt-16 grid max-w-2xl grid-cols-1 grid-rows-1 gap-8 text-sm/6 text-stone-800 sm:mt-20 sm:grid-cols-2 xl:mx-0 xl:max-w-none xl:grid-flow-col xl:grid-cols-4 dark:text-stone-100'>
           <figure className='rounded-2xl bg-stone-100 shadow-lg ring-1 ring-stone-800/5 sm:col-span-2 xl:col-start-2 xl:row-end-1 dark:bg-stone-800/75 dark:shadow-none dark:ring-white/10'>

@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/Button';
 import { Container } from '@/components/Container';
-import { appUrl } from '@/constants';
+import { appUrl, siteUrl } from '@/constants';
+import { siteOpenGraph } from '@/lib/metadata';
 import { findPost, formatDate, posts } from '@/content/blog';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -19,7 +20,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.description,
-    openGraph: { type: 'article', publishedTime: post.date },
+    openGraph: {
+      ...siteOpenGraph,
+      type: 'article',
+      publishedTime: post.date,
+      // The root's generated share image isn't inherited once a page sets openGraph.
+      images: '/opengraph-image',
+    },
   };
 }
 
@@ -33,8 +40,8 @@ export default async function PostPage({ params }: Props) {
     headline: post.title,
     description: post.description,
     datePublished: post.date,
-    author: { '@type': 'Person', name: 'Adam', url: 'https://www.multiborder.io/about' },
-    mainEntityOfPage: `https://www.multiborder.io/blog/${post.slug}`,
+    author: { '@type': 'Person', name: 'Adam', url: `${siteUrl}/about` },
+    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
   };
 
   return (

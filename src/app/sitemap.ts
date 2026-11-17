@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { siteUrl } from '@/constants';
 import { posts } from '@/content/blog';
 
-const base = 'https://www.multiborder.io';
+const base = siteUrl;
 
 const pages: [path: string, priority: number][] = [
   ['', 1],

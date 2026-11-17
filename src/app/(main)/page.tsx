@@ -1,6 +1,7 @@
 import { Hero } from "@/components/Hero";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { ReviewsStrip } from "@/components/ReviewsStrip";
+import { siteUrl } from "@/constants";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -20,7 +21,7 @@ const structuredData = {
       name: "Multiborder Web Editor",
       browserRequirements: "Requires JavaScript",
       applicationCategory: "PhotographyApplication",
-      url: "https://www.multiborder.io/editor",
+      url: `${siteUrl}/editor`,
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     },
   ],
