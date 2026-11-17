@@ -1,6 +1,13 @@
+import type { Metadata } from 'next';
 import { Container } from "@/components/Container";
 import Link from "next/link";
 import { Button } from "@/components/Button";
+
+export const metadata: Metadata = {
+  title: 'Support',
+  description:
+    'Get help with Multiborder, the iOS app and web editor for adding borders to photos.',
+};
 
 export default function Support() {
   return (

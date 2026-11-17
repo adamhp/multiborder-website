@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import { Button } from '@/components/Button';
 import { Container } from '@/components/Container';
 import { Reviews } from '@/components/Reviews';
 import { QrDownload } from '../../../components/QrDownload';
+
+export const metadata: Metadata = {
+  title: 'Reviews',
+  description:
+    'What photographers say about Multiborder on the App Store.',
+};
 
 export default function ReviewsPage() {
   return (

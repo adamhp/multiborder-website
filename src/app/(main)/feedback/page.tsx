@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import { Container } from "@/components/Container";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { Button } from "@/components/Button";
 import kofibit from "@/images/kofibit.png";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: 'Feedback',
+  description:
+    'Send feature requests, bug reports, or ideas for Multiborder.',
+};
 
 export default function Feedback() {
   return (

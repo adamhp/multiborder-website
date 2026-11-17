@@ -11,9 +11,23 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Multiborder',
+  metadataBase: new URL('https://www.multiborder.io'),
+  title: {
+    default: 'Multiborder · Add borders to multiple photos at once',
+    template: '%s · Multiborder',
+  },
   description:
     'Easily add borders to multiple images, preserving aspect ratio to optimize for social media posts.',
+  applicationName: 'Multiborder',
+  alternates: { canonical: './' },
+  openGraph: {
+    type: 'website',
+    siteName: 'Multiborder',
+    url: './',
+    locale: 'en_US',
+  },
+  twitter: { card: 'summary_large_image' },
+  itunes: { appId: '6473557515' },
 };
 
 export default function RootLayout({

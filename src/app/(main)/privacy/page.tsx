@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import { Container } from "@/components/Container";
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description:
+    'Multiborder collects no personal data. Read the full privacy policy.',
+};
 
 export default function Privacy() {
   return (

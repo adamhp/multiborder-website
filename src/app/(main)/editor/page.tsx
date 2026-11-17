@@ -4,8 +4,9 @@ import { Editor } from '@/components/editor/Editor';
 import './editor.css';
 
 export const metadata: Metadata = {
-  title: 'Web Editor · Multiborder',
-  description: 'Add borders to your photos in your browser. Nothing is uploaded.',
+  title: 'Free Online Photo Border Editor',
+  description:
+    'Add borders to multiple photos at once, right in your browser. Set aspect ratio, border size and color. Free, and nothing is uploaded.',
 };
 
 export default function EditorPage() {

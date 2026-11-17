@@ -1,48 +1,18 @@
 import type { MetadataRoute } from 'next';
 
+const base = 'https://www.multiborder.io';
+
+const pages: [path: string, priority: number][] = [
+  ['', 1],
+  ['/editor', 0.8],
+  ['/features', 0.6],
+  ['/reviews', 0.5],
+  ['/support', 0.3],
+  ['/feedback', 0.2],
+  ['/about', 0.2],
+  ['/privacy', 0.1],
+];
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: 'https://www.multiborder.io',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: 'https://www.multiborder.io/reviews',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.1,
-    },
-    {
-      url: 'https://www.multiborder.io/features',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.1,
-    },
-    {
-      url: 'https://www.multiborder.io/editor',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: 'https://www.multiborder.io/support',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.1,
-    },
-    {
-      url: 'https://www.multiborder.io/feedback',
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.1,
-    },
-    {
-      url: 'https://www.multiborder.io/about',
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.1,
-    },
-  ];
+  return pages.map(([path, priority]) => ({ url: base + path, priority }));
 }

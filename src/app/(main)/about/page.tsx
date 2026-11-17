@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Container } from "@/components/Container";
 import meandrue from "@/images/meandrue.png";
 import Image from "next/image";
@@ -5,6 +6,12 @@ import { appUrl } from "@/constants";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import kofibit from "@/images/kofibit.png";
+
+export const metadata: Metadata = {
+  title: 'About',
+  description:
+    'Why Multiborder exists and who builds it.',
+};
 
 export default function About() {
   return (
