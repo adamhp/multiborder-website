@@ -34,6 +34,7 @@
     "use-debounce": "^10.1.1"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
