@@ -208,6 +208,13 @@ describe('startingSettings', () => {
     expect(startingSettings(undefined, storage)).toEqual(loadSettings(storage));
   });
 
+  it('cameraSettingsPresetShowsCameraDetailsWhateverWasStored', () => {
+    const { storage } = storageWith({ captionFields: ['date'] });
+    const result = startingSettings(findPreset('camera-settings')?.settings, storage);
+    expect(result.showsCaption).toBe(true);
+    expect(result.captionFields).toEqual(expect.arrayContaining(['camera', 'focalLength', 'aperture', 'shutter', 'iso']));
+  });
+
   it('presetsAreValid', () => {
     const slugs = editorPresets.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
@@ -218,6 +225,9 @@ describe('startingSettings', () => {
       for (const [key, value] of Object.entries(preset.settings)) {
         expect(typeof value, `${preset.slug}.${key}`).toBe(typeof DEFAULT_SETTINGS[key as keyof BorderSettings]);
       }
+      // Export options aren't visible on the next visit, so a preset must not change them behind the visitor's back.
+      expect(preset.settings).not.toHaveProperty('exportWidth');
+      expect(preset.settings).not.toHaveProperty('exportFormat');
       // A stored copy of the preset survives loadSettings' validation unchanged.
       const { storage } = storageWith(preset.settings);
       expect(loadSettings(storage)).toMatchObject(preset.settings);

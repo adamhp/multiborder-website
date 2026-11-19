@@ -338,6 +338,12 @@ export function Editor({
 
           {/* The controls keep the phone's width, beside the photos on large screens and under them on small ones. */}
           <aside aria-label='Border settings' className='mx-auto w-full max-w-sm space-y-4 lg:sticky lg:top-6 lg:rounded-2xl lg:bg-stone-900/40 lg:p-4'>
+            {settings?.fill === 'blur' && !canBlur && (
+              <p role='status' className='mb-4 text-sm text-amber-200'>
+                This browser can&apos;t draw the blurred border, so a plain color is used. Try a current version of Chrome,
+                Firefox or Safari, or the iPhone app.
+              </p>
+            )}
             {settings && <Controls settings={settings} onChange={change} canBlur={canBlur} />}
 
             <div className='space-y-2 border-t border-white/10 pt-4'>

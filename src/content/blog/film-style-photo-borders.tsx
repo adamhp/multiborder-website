@@ -36,7 +36,8 @@ export const post: Post = {
       </p>
       <p>
         <strong>To make it:</strong> turn on Separate border for each side, then make the bottom about three times as
-        wide as the other three. A square canvas is closest to the classic look.
+        wide as the other three. The classic print is a square picture on a card a little taller than it is wide, so a
+        square photo on the 4:5 canvas comes closest.
       </p>
       <Figure src='film-border.jpg' width={1440} height={1080}
         alt='A coastal village photo on a white border that is wider at the bottom, with rounded corners and a soft shadow'
@@ -67,7 +68,7 @@ export const post: Post = {
       <h2>Keep the shape of the film</h2>
       <p>
         The frame’s shape does as much as the border. 35mm film is 3:2, and medium format is often square. If your
-        photo is already one of those shapes, keep the canvas on Original so the border follows it. Cropping a 3:2
+        photo is already one of those shapes, keep the photo’s own shape (the first shape button, with the picture icon) so the border follows it. Cropping a 3:2
         photo to fit a phone screen takes away the thing that made it look like film.
       </p>
       <p>

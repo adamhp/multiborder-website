@@ -52,8 +52,8 @@ export const post: Post = {
       <ol>
         <li>Choose your photos. They all get the same canvas.</li>
         <li>Keep 3:4, or pick 4:5 or 1:1 if that suits your feed better.</li>
-        <li>Raise Border width if you want a frame on every side as well.</li>
-        <li>Download. The size is already set to 1080 pixels wide.</li>
+        <li>Move Border width to make the frame on every side wider or narrower.</li>
+        <li>Download. For Instagram, the 1080 px size is plenty.</li>
       </ol>
       <p>Nothing is uploaded. The editor works on the photos in your browser.</p>
 

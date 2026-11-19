@@ -53,7 +53,7 @@ export const post: Post = {
           Move Blur strength. A low setting leaves shapes you can recognize. A high setting turns the border into a
           smooth wash of color.
         </li>
-        <li>Raise Border width if you want blur on every side, including the sides the photo already reaches.</li>
+        <li>Move Border width to set how much blur shows on the sides the photo already reaches.</li>
         <li>Download one photo, or all of them as a .zip.</li>
       </ol>
       <p>Your photos stay on your device. The editor does its work in the browser and uploads nothing.</p>
@@ -73,7 +73,8 @@ export const post: Post = {
         </li>
       </ul>
       <p>
-        The same options are in the iPhone app, if you’d rather do this from your camera roll.
+        The same options are in the iPhone app, if you’d rather do this from your camera roll. For other looks, see{' '}
+        <Link href='/blog/film-style-photo-borders'>film-style borders</Link>.
       </p>
     </>
   ),

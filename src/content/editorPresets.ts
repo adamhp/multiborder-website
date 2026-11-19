@@ -1,4 +1,4 @@
-import type { BorderSettings } from '@/editor/settings';
+import { DEFAULT_SETTINGS, type BorderSettings } from '@/editor/settings';
 
 /** A landing page at `/editor/<slug>`: the web editor, opened already set up for one job. */
 export type EditorPreset = {
@@ -30,7 +30,7 @@ export const editorPresets: EditorPreset[] = [
       'Fit your whole photo into Instagram’s 3:4 frame with a border instead of a crop. Works on a batch of photos at once. Free, and nothing is uploaded.',
     heading: 'Fit your whole photo on Instagram',
     intro:
-      'The editor is set to a 3:4 canvas, the tallest shape Instagram accepts and the shape of its profile grid, with white filling the space your photo doesn’t. Nothing is cropped. Add your photos, switch to 4:5 or change the color if you like, and download them at 1080 pixels wide.',
+      'The editor is set to a 3:4 canvas, the tallest shape Instagram accepts and the shape of its profile grid, with white filling the space your photo doesn’t. Nothing is cropped. Add your photos, switch to 4:5 or change the color if you like, and download them. For Instagram, the 1080 px size is plenty.',
     settings: {
       aspectRatio: '3:4',
       isLandscape: false,
@@ -38,7 +38,6 @@ export const editorPresets: EditorPreset[] = [
       borderColor: '#ffffff',
       paddingFraction: 0.04,
       isPerSide: false,
-      exportWidth: 1080,
     },
   },
   {
@@ -49,7 +48,8 @@ export const editorPresets: EditorPreset[] = [
     heading: 'Show your camera settings on the photo',
     intro:
       'The editor is set to a white border with the caption turned on. Add a photo and its camera, focal length, aperture, shutter speed and ISO are read from the file and printed on the border. Choose which details to show, reorder them, and pick a typeface.',
-    settings: { showsCaption: true, paddingFraction: 0.08, isPerSide: false, fill: 'color', borderColor: '#ffffff' },
+    // The caption's details are set too, so a visitor who once hid the camera details still sees them here.
+    settings: { showsCaption: true, captionFields: DEFAULT_SETTINGS.captionFields, paddingFraction: 0.08, isPerSide: false, fill: 'color', borderColor: '#ffffff' },
   },
   {
     slug: 'blur-background',

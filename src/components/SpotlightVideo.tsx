@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 
-// A silent looping clip that only autoplays when the visitor allows motion.
-// The poster stays visible if the video is missing or fails to load.
-export function SpotlightVideo({ src, poster, label }: { src: string; poster: string; label: string }) {
+/** Plays a silent looping clip only while the visitor allows motion; otherwise its poster stays up. */
+export function useMotionSafeAutoplay() {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -19,6 +18,13 @@ export function SpotlightVideo({ src, poster, label }: { src: string; poster: st
     reduce.addEventListener('change', update);
     return () => reduce.removeEventListener('change', update);
   }, []);
+
+  return ref;
+}
+
+// The poster stays visible if the video is missing or fails to load.
+export function SpotlightVideo({ src, poster, label }: { src: string; poster: string; label: string }) {
+  const ref = useMotionSafeAutoplay();
 
   return (
     <video
