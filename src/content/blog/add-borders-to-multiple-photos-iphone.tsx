@@ -67,7 +67,7 @@ export const post: Post = {
 
       <h2>Option 5: In the browser</h2>
       <p>
-        If you’d rather not install anything, the <Link href='/editor'>Multiborder web editor</Link> also does batches.
+        If you’d rather not install anything, the <Link href='/editor/white-border'>Multiborder web editor</Link> also does batches.
         It runs in Safari on iPhone and in any browser on a computer. Add your photos, set the border once, and
         download the results one at a time, or all together as a .zip file.
       </p>

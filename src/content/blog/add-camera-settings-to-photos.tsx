@@ -54,7 +54,7 @@ export const post: Post = {
       <h2>Adding the caption</h2>
       <p>
         In Multiborder, the camera settings caption reads the details straight from each photo, so you never type
-        them. In the <Link href='/editor'>web editor</Link> or the iPhone app:
+        them. In the <Link href='/editor/camera-settings'>web editor</Link> or the iPhone app:
       </p>
       <ol>
         <li>Add your photos and give them a border. The caption sits in the border, so leave some room.</li>

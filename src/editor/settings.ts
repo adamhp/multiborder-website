@@ -209,6 +209,11 @@ export function loadSettings(storage = browserStorage()): BorderSettings {
   return s;
 }
 
+/** What the editor opens with: the stored settings, with a landing page's preset laid over them. Never writes. */
+export function startingSettings(preset: Partial<BorderSettings> = {}, storage = browserStorage()): BorderSettings {
+  return { ...loadSettings(storage), ...preset };
+}
+
 export function saveSettings(s: BorderSettings, storage = browserStorage()): void {
   try {
     storage?.setItem(STORAGE_KEY, JSON.stringify(s));

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { siteUrl } from '@/constants';
 import { posts } from '@/content/blog';
+import { editorPresets } from '@/content/editorPresets';
 
 const base = siteUrl;
 
@@ -19,6 +20,7 @@ const pages: [path: string, priority: number][] = [
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...pages.map(([path, priority]) => ({ url: base + path, priority })),
+    ...editorPresets.map((p) => ({ url: `${base}/editor/${p.slug}`, priority: 0.7 })),
     ...posts.map((p) => ({ url: `${base}/blog/${p.slug}`, lastModified: p.date, priority: 0.6 })),
   ];
 }
