@@ -81,7 +81,7 @@ export const post: Post = {
       <h2>Adding the border</h2>
       <p>
         You can do this in any editor with a canvas size setting, one photo at a time. For a whole set, this is what I
-        made Multiborder for. In the <Link href='/editor'>free web editor</Link>:
+        made Multiborder for. In the <Link href='/editor/instagram'>free web editor</Link>:
       </p>
       <ol>
         <li>Add your photos. You can add as many as you like, and they all get the same border.</li>
