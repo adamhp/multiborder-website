@@ -9,8 +9,10 @@ import {
   exportType,
   loadSettings,
   moveCaptionField,
+  startingSettings,
   type BorderSettings,
 } from './settings';
+import { editorPresets, findPreset } from '../content/editorPresets';
 
 const settings = (overrides: Partial<BorderSettings>): BorderSettings => ({ ...DEFAULT_SETTINGS, ...overrides });
 
@@ -174,5 +176,51 @@ describe('export format', () => {
     expect(loaded.exportFormat).toBe('original');
     expect(loaded.handleStyle).toBe('instagram');
     expect(loaded.captionFont).toBe('spaceMono');
+  });
+});
+
+describe('startingSettings', () => {
+  const storageWith = (stored: object) => {
+    const writes: string[] = [];
+    const storage = {
+      getItem: () => JSON.stringify(stored),
+      setItem: (key: string) => void writes.push(key),
+    } as unknown as Storage;
+    return { storage, writes };
+  };
+
+  it('startingSettingsAppliesPresetOverStored', () => {
+    const { storage } = storageWith({ paddingFraction: 0.1, captionFont: 'inter' });
+    const result = startingSettings({ paddingFraction: 0.05, fill: 'blur' }, storage);
+    expect(result.paddingFraction).toBe(0.05);
+    expect(result.fill).toBe('blur');
+    expect(result.captionFont).toBe('inter');
+  });
+
+  it('startingSettingsDoesNotWrite', () => {
+    const { storage, writes } = storageWith({ paddingFraction: 0.1 });
+    startingSettings({ paddingFraction: 0.05 }, storage);
+    expect(writes).toEqual([]);
+  });
+
+  it('startingSettingsWithoutPresetIsLoadSettings', () => {
+    const { storage } = storageWith({ paddingFraction: 0.1, fill: 'blur' });
+    expect(startingSettings(undefined, storage)).toEqual(loadSettings(storage));
+  });
+
+  it('presetsAreValid', () => {
+    const slugs = editorPresets.map((p) => p.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    expect(slugs).toEqual(['white-border', 'instagram', 'camera-settings', 'blur-background']);
+    for (const preset of editorPresets) {
+      expect(preset.slug).toMatch(/^[a-z]+(-[a-z]+)*$/);
+      expect(findPreset(preset.slug)).toBe(preset);
+      for (const [key, value] of Object.entries(preset.settings)) {
+        expect(typeof value, `${preset.slug}.${key}`).toBe(typeof DEFAULT_SETTINGS[key as keyof BorderSettings]);
+      }
+      // A stored copy of the preset survives loadSettings' validation unchanged.
+      const { storage } = storageWith(preset.settings);
+      expect(loadSettings(storage)).toMatchObject(preset.settings);
+    }
   });
 });

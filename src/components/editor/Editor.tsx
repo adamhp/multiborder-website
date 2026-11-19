@@ -9,7 +9,7 @@ import { Controls, ExportOptions } from '@/components/editor/Controls';
 import { DecodeError, drawComposite, exportImage, exportName, loadPhoto, supportsCanvasFilter, type LoadedPhoto } from '@/editor/compose';
 import { loadCaptionFont } from '@/editor/fonts';
 import { layout } from '@/editor/layout';
-import { loadSettings, saveSettings, type BorderSettings } from '@/editor/settings';
+import { saveSettings, startingSettings, type BorderSettings } from '@/editor/settings';
 
 type Failure = { id: string; name: string; message: string };
 
@@ -91,7 +91,18 @@ function Preview({ photo, settings, fontsLoaded, active }: { photo: LoadedPhoto;
   );
 }
 
-export function Editor() {
+type EditorProps = {
+  /** Settings a landing page starts with, over the visitor's saved ones. Saved only once they change something. */
+  preset?: Partial<BorderSettings>;
+  heading?: string;
+  intro?: string;
+};
+
+export function Editor({
+  preset,
+  heading = 'Web Editor',
+  intro = 'Add borders to your photos right in your browser. Your photos stay on your device: nothing is uploaded.',
+}: EditorProps) {
   const [settings, setSettings] = useState<BorderSettings | null>(null);
   const [photos, setPhotos] = useState<LoadedPhoto[]>([]);
   const [failures, setFailures] = useState<Failure[]>([]);
@@ -107,8 +118,9 @@ export function Editor() {
 
   // Settings and browser features are read after mounting, since the page is prerendered without a window.
   useEffect(() => {
-    setSettings(loadSettings());
+    setSettings(startingSettings(preset));
     setCanBlur(supportsCanvasFilter());
+    // A page's preset never changes while it's open.
   }, []);
 
   const captionFont = settings?.captionFont;
@@ -252,10 +264,8 @@ export function Editor() {
       className='py-12'
     >
       <div className='mb-8 max-w-2xl'>
-        <h1 className='text-3xl text-stone-100'>Web Editor</h1>
-        <p className='mt-3 text-stone-300'>
-          Add borders to your photos right in your browser. Your photos stay on your device: nothing is uploaded.
-        </p>
+        <h1 className='text-3xl text-stone-100'>{heading}</h1>
+        <p className='mt-3 text-stone-300'>{intro}</p>
       </div>
       {picker}
 
